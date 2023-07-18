@@ -57,10 +57,12 @@ LIBRARY_DIR="libraries/"
 [ ! -d $CODE_DIR ] &&mkdir $CODE_DIR
 [ ! -d $ADDRESS_DIR ] &&mkdir $ADDRESS_DIR
 
-SWAP_FACTORY="classicmoon_factory"
 SWAP_PAIR="classicmoon_pair"
-SWAP_ROUTER="classicmoon_router"
 SWAP_TOKEN="classicmoon_token"
+
+##############################################
+### ENV, Build, Upload, Instantiate, Clean ###
+##############################################
 
 CreateEnv() {
     sudo apt-get update && sudo apt upgrade -y
@@ -150,19 +152,11 @@ RemoveHistory() {
 }
 
 BatchUpload() {
-    # CATEGORY=$SWAP_TOKEN
-    # printf "y\n" | Upload
-    # sleep 3
-    
-    # CATEGORY=$SWAP_PAIR
-    # printf "y\n" | Upload
-    # sleep 3
-
-    CATEGORY=$SWAP_FACTORY
+    CATEGORY=$SWAP_TOKEN
     printf "y\n" | Upload
     sleep 3
-
-    CATEGORY=$SWAP_ROUTER
+    
+    CATEGORY=$SWAP_PAIR
     printf "y\n" | Upload
     sleep 3
 }
@@ -190,30 +184,48 @@ Instantiate() {
 }
 
 BatchInstantiate() {
-    # CATEGORY=$SWAP_TOKEN
-    # PARAM_1='{"name":"ClassicMoon Test", "symbol":"TCLSM", "decimals":6, "initial_balances":[{"address":"'$ADDR_ADMIN'", "amount":"6800000000000000000"}], "mint":{"minter":"'$ADDR_ADMIN'"}, "marketing":{"marketing":"'$ADDR_ADMIN'","logo":{"url":"https://classicmoon-frontend-2023.web.app/logo83.png"}}}'
-    # PARAM_2="TCLSM"
-    # printf "y\n" | Instantiate
-    # sleep 5
-
-    # CATEGORY=$SWAP_PAIR
-    # PARAM_1='{"asset_infos":[{"token":{"contract_addr":"'$(cat $ADDRESS_DIR$SWAP_TOKEN)'"}}, {"native_token":{"denom":"uluna"}}], "token_code_id":'$(cat $CODE_DIR$SWAP_TOKEN)', "asset_decimals":[6, 6]}'
-    # PARAM_2="SwapPair"
-    # printf "y\n" | Instantiate
-    # sleep 5
-    
-    CATEGORY=$SWAP_FACTORY
-    PARAM_1='{"pair_code_id":'$(cat $CODE_DIR$SWAP_PAIR)', "token_code_id":'$(cat $CODE_DIR$SWAP_TOKEN)'}'
-    PARAM_2="SwapFactory"
+    CATEGORY=$SWAP_TOKEN
+    PARAM_1='{"name":"ClassicMoon Test", "symbol":"TCLSM", "decimals":6, "initial_balances":[{"address":"'$ADDR_ADMIN'", "amount":"6800000000000000000"}], "mint":{"minter":"'$ADDR_ADMIN'"}, "marketing":{"marketing":"'$ADDR_ADMIN'","logo":{"url":"https://classicmoon-frontend-2023.web.app/logo83.png"}}}'
+    PARAM_2="TCLSM"
     printf "y\n" | Instantiate
     sleep 5
 
-    CATEGORY=$SWAP_ROUTER
-    PARAM_1='{"classicmoon_factory": "'$(cat $ADDRESS_DIR$SWAP_FACTORY)'" }'
-    PARAM_2="SwapRouter"
+    CATEGORY=$SWAP_PAIR
+    PARAM_1='{"asset_infos":[{"token":{"contract_addr":"'$(cat $ADDRESS_DIR$SWAP_TOKEN)'"}}, {"native_token":{"denom":"uluna"}}], "token_code_id":'$(cat $CODE_DIR$SWAP_TOKEN)', "asset_decimals":[6, 6]}'
+    PARAM_2="SwapPair"
     printf "y\n" | Instantiate
     sleep 5
 }
+
+##############################################
+##################   Util   ##################
+##############################################
+
+Balances() {
+    echo prism lunc balance
+    printf "y\n" | terrad query bank balances $ADDR_PRISM $NODECHAIN --output json
+    sleep 3
+
+    echo prism CLSM balance
+    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$SWAP_TOKEN) '{"balance":{"address":"'$ADDR_PRISM'"}}' $NODECHAIN --output json
+    sleep 3
+
+    echo prism LP balance
+    printf "y\n" | terrad query wasm contract-state smart $ADDR_LP '{"balance":{"address":"'$ADDR_PRISM'"}}' $NODECHAIN --output json
+    sleep 3
+
+    echo pair lunc balance
+    printf "y\n" | terrad query bank balances $(cat $ADDRESS_DIR$SWAP_PAIR) $NODECHAIN --output json
+    sleep 3
+
+    echo pair CLSM balance
+    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$SWAP_TOKEN) '{"balance":{"address":"'$(cat $ADDRESS_DIR$SWAP_PAIR)'"}}' $NODECHAIN --output json
+    sleep 3
+}
+
+##############################################
+##################   Token   ##################
+##############################################
 
 TokenMint() {
     echo "================================================="
@@ -233,7 +245,18 @@ IncreaseAllowance() {
     echo "End"
 }
 
-Allowance() {
+TokenTransfer () {
+    echo "================================================="
+    echo "Start Transfer"
+    PARAM_1='{"transfer": {"recipient": "terra1tvlszuvjud7ckguglcmzdyh8wx9g0wy5ujhy0h", "amount": "1000000000" }}'
+    PARAM_2='TCLSM'
+    echo "terrad tx wasm execute terra1cjf9ug5hyq3wate9vlhsdxgvklkv3npcm8u5sfu83gly0c8ljjvq50az2d "$PARAM_1" $WALLET $TXFLAG"
+    printf "y\n" | terrad tx wasm execute terra1cjf9ug5hyq3wate9vlhsdxgvklkv3npcm8u5sfu83gly0c8ljjvq50az2d "$PARAM_1" $WALLET $TXFLAG
+    sleep 5
+    echo "End"
+}
+
+GetAllowance() {
     echo "================================================="
     echo "Allowance"
     PARAM_1='{"allowance": {"owner": "'$ADDR_ADMIN'", "spender": "'$(cat $ADDRESS_DIR$SWAP_PAIR)'"}}'
@@ -243,7 +266,7 @@ Allowance() {
 }
 
 ##############################################
-######                PAIR              ######
+######           PAIR Execute           ######
 ##############################################
 
 AddLiquidity() {
@@ -290,41 +313,62 @@ SwapClsmToLunc() {
     echo "End"
 }
 
-TokenTransfer () {
+##############################################
+######            PAIR Query            ######
+##############################################
+
+GetPair() {
     echo "================================================="
-    echo "Start Transfer"
-    PARAM_1='{"transfer": {"recipient": "terra1tvlszuvjud7ckguglcmzdyh8wx9g0wy5ujhy0h", "amount": "1000000000" }}'
-    PARAM_2='TCLSM'
-    echo "terrad tx wasm execute terra1cjf9ug5hyq3wate9vlhsdxgvklkv3npcm8u5sfu83gly0c8ljjvq50az2d "$PARAM_1" $WALLET $TXFLAG"
-    printf "y\n" | terrad tx wasm execute terra1cjf9ug5hyq3wate9vlhsdxgvklkv3npcm8u5sfu83gly0c8ljjvq50az2d "$PARAM_1" $WALLET $TXFLAG
+    echo "Pair"
+    PARAM_1='{"pair": {}}'
+    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$SWAP_PAIR) "$PARAM_1" $NODECHAIN --output json
+    sleep 3
+    echo "End"
+}
+
+GetPool() {
+    echo "================================================="
+    echo "Pool"
+    PARAM_1='{"pool": {}}'
+    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$SWAP_PAIR) "$PARAM_1" $NODECHAIN --output json
+    sleep 3
+    echo "End"
+}
+
+SimulationClsmToLunc() {
+    echo "================================================="
+    echo "SimulationClsmToLunc"
+    PARAM_1='{"simulation": {"offer_asset": {"info": {"token":{"contract_addr":"'$(cat $ADDRESS_DIR$SWAP_TOKEN)'"}}, "amount": "10000000"}}}'
+    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$SWAP_PAIR) "$PARAM_1" $NODECHAIN --output json
+    sleep 3
+    echo "End"
+}
+
+SimulationLuncToClsm() {
+    echo "================================================="
+    echo "SimulationLuncToClsm"
+    PARAM_1='{"simulation": {"offer_asset": {"info": {"native_token":{"denom":"uluna"}}, "amount": "100000"}}}'
+    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$SWAP_PAIR) "$PARAM_1" $NODECHAIN --output json
+    sleep 3
+    echo "End"
+}
+
+ReverseSimulationLuncFromClsm() {
+    echo "================================================="
+    echo "ReverseSimulationLuncFromClsm"
+    PARAM_1='{"reverse_simulation": {"ask_asset": {"info": {"native_token":{"denom":"uluna"}}, "amount": "100000"}}}'
+    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$SWAP_PAIR) "$PARAM_1" $NODECHAIN --output json
     sleep 5
     echo "End"
 }
 
-TokenBalance() {
-    printf "y\n" | terrad query wasm contract-state smart terra10lqax5avsef2ftfvj2ghwhu2elc40e6gxxzxuu2msa67hea3amsqn885ff '{"balance":{"address":"terra10ytakemtdwy3hx5w9rfqdnvyxlhz4tss8zvxrs"}}' $NODECHAIN --output json
-}
-
-Balances() {
-    echo prism lunc balance
-    printf "y\n" | terrad query bank balances $ADDR_PRISM $NODECHAIN --output json
-    sleep 3
-
-    echo prism CLSM balance
-    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$SWAP_TOKEN) '{"balance":{"address":"'$ADDR_PRISM'"}}' $NODECHAIN --output json
-    sleep 3
-
-    echo prism LP balance
-    printf "y\n" | terrad query wasm contract-state smart $ADDR_LP '{"balance":{"address":"'$ADDR_PRISM'"}}' $NODECHAIN --output json
-    sleep 3
-
-    echo pair lunc balance
-    printf "y\n" | terrad query bank balances $(cat $ADDRESS_DIR$SWAP_PAIR) $NODECHAIN --output json
-    sleep 3
-
-    echo pair CLSM balance
-    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$SWAP_TOKEN) '{"balance":{"address":"'$(cat $ADDRESS_DIR$SWAP_PAIR)'"}}' $NODECHAIN --output json
-    sleep 3
+ReverseSimulationClsmFromLunc() {
+    echo "================================================="
+    echo "ReverseSimulationClsmFromLunc"
+    PARAM_1='{"reverse_simulation": {"ask_asset": {"info": {"token":{"contract_addr":"'$(cat $ADDRESS_DIR$SWAP_TOKEN)'"}}, "amount": "10000000"}}}'
+    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$SWAP_PAIR) "$PARAM_1" $NODECHAIN --output json
+    sleep 5
+    echo "End"
 }
 
 #################################### End of Function ###################################################
