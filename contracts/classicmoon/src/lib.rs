@@ -1,8 +1,8 @@
 pub mod contract;
 pub mod state;
 
-mod operations;
-mod querier;
+mod error;
+mod response;
 
 #[cfg(test)]
 mod testing;
