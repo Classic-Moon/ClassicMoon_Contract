@@ -120,23 +120,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "classicmoon-factory"
-version = "0.1.0"
-dependencies = [
- "classic-bindings",
- "classic_classicmoon",
- "cosmwasm-schema",
- "cosmwasm-std",
- "cosmwasm-storage",
- "cw-storage-plus 1.1.0",
- "cw2",
- "cw20",
- "protobuf",
- "schemars",
- "serde",
-]
-
-[[package]]
 name = "classicmoon-pair"
 version = "0.2.0"
 dependencies = [
@@ -153,23 +136,6 @@ dependencies = [
  "schemars",
  "serde",
  "thiserror",
-]
-
-[[package]]
-name = "classicmoon-router"
-version = "0.1.0"
-dependencies = [
- "classic-bindings",
- "classic_classicmoon",
- "cosmwasm-schema",
- "cosmwasm-std",
- "cosmwasm-storage",
- "cw-storage-plus 1.1.0",
- "cw2",
- "cw20",
- "integer-sqrt",
- "schemars",
- "serde",
 ]
 
 [[package]]
