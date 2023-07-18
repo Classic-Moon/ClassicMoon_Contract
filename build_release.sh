@@ -308,10 +308,10 @@ RemoveLiquidity() {
 TokenTransfer () {
     echo "================================================="
     echo "Start Transfer"
-    PARAM_1='{"transfer": {"recipient": "terra10ytakemtdwy3hx5w9rfqdnvyxlhz4tss8zvxrs", "amount": "1000000000" }}'
-    PARAM_2='LP_TOKEN'
-    echo "terrad tx wasm execute terra1cawakx595vvlgwnuk60v3q2un9akppu2t7msgs0k38gupeaefsdsnpt44a "$PARAM_1" $WALLET $TXFLAG"
-    printf "y\n" | terrad tx wasm execute terra1cawakx595vvlgwnuk60v3q2un9akppu2t7msgs0k38gupeaefsdsnpt44a "$PARAM_1" $WALLET $TXFLAG
+    PARAM_1='{"transfer": {"recipient": "terra1tvlszuvjud7ckguglcmzdyh8wx9g0wy5ujhy0h", "amount": "1000000000" }}'
+    PARAM_2='TCLSM'
+    echo "terrad tx wasm execute terra1cjf9ug5hyq3wate9vlhsdxgvklkv3npcm8u5sfu83gly0c8ljjvq50az2d "$PARAM_1" $WALLET $TXFLAG"
+    printf "y\n" | terrad tx wasm execute terra1cjf9ug5hyq3wate9vlhsdxgvklkv3npcm8u5sfu83gly0c8ljjvq50az2d "$PARAM_1" $WALLET $TXFLAG
     sleep 5
     echo "End"
 }
@@ -359,8 +359,8 @@ UpdateFactoryMigrate() {
 
 #################################### End of Function ###################################################
 if [[ $FUNCTION == "" ]]; then
-    BatchUpload
-    # BatchInstantiate
+    # BatchUpload
+    BatchInstantiate
     # UpdateTreasury
 else
     $FUNCTION
