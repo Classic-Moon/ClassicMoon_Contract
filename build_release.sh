@@ -256,6 +256,15 @@ TokenMint() {
     sleep 5
 }
 
+UpdateMinter() {
+    echo "================================================="
+    echo "UpdateMinter"
+    PARAM_1='{"update_minter": {"new_minter": "'$ADDR_PRISM2'" }}'
+    echo "terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET $TXFLAG"
+    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET $TXFLAG
+    sleep 5
+}
+
 IncreaseAllowance() {
     echo "================================================="
     echo "Increase Allowance"
