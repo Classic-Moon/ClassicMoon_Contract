@@ -149,21 +149,21 @@ RemoveHistory() {
 }
 
 BatchUpload() {
-    CATEGORY=$SWAP_TOKEN
-    printf "y\n" | Upload
-    sleep 3
+    # CATEGORY=$SWAP_TOKEN
+    # printf "y\n" | Upload
+    # sleep 3
     
     # CATEGORY=$SWAP_PAIR
     # printf "y\n" | Upload
     # sleep 3
 
-    # CATEGORY=$SWAP_FACTORY
-    # printf "y\n" | Upload
-    # sleep 3
+    CATEGORY=$SWAP_FACTORY
+    printf "y\n" | Upload
+    sleep 3
 
-    # CATEGORY=$SWAP_ROUTER
-    # printf "y\n" | Upload
-    # sleep 3
+    CATEGORY=$SWAP_ROUTER
+    printf "y\n" | Upload
+    sleep 3
 }
 
 Instantiate() {
@@ -189,11 +189,11 @@ Instantiate() {
 }
 
 BatchInstantiate() {
-    CATEGORY=$SWAP_TOKEN
-    PARAM_1='{"name":"ClassicMoon Test", "symbol":"TCLSM", "decimals":6, "initial_balances":[{"address":"'$ADDR_ADMIN'", "amount":"6800000000000000000"}], "mint":{"minter":"'$ADDR_ADMIN'"}, "marketing":{"marketing":"'$ADDR_ADMIN'","logo":{"url":"https://classicmoon-frontend-2023.web.app/logo83.png"}}}'
-    PARAM_2="TCLSM"
-    printf "y\n" | Instantiate
-    sleep 5
+    # CATEGORY=$SWAP_TOKEN
+    # PARAM_1='{"name":"ClassicMoon Test", "symbol":"TCLSM", "decimals":6, "initial_balances":[{"address":"'$ADDR_ADMIN'", "amount":"6800000000000000000"}], "mint":{"minter":"'$ADDR_ADMIN'"}, "marketing":{"marketing":"'$ADDR_ADMIN'","logo":{"url":"https://classicmoon-frontend-2023.web.app/logo83.png"}}}'
+    # PARAM_2="TCLSM"
+    # printf "y\n" | Instantiate
+    # sleep 5
 
     # CATEGORY=$SWAP_PAIR
     # PARAM_1='{"asset_infos":[{"token":{"contract_addr":"'$(cat $ADDRESS_DIR$SWAP_TOKEN)'"}}, {"native_token":{"denom":"uluna"}}], "token_code_id":'$(cat $CODE_DIR$SWAP_TOKEN)', "asset_decimals":[6, 6]}'
@@ -201,17 +201,17 @@ BatchInstantiate() {
     # printf "y\n" | Instantiate
     # sleep 5
     
-    # CATEGORY=$SWAP_FACTORY
-    # PARAM_1='{"pair_code_id":'$(cat $CODE_DIR$SWAP_PAIR)', "token_code_id":'$(cat $CODE_DIR$SWAP_TOKEN)'}'
-    # PARAM_2="SwapFactory"
-    # printf "y\n" | Instantiate
-    # sleep 5
+    CATEGORY=$SWAP_FACTORY
+    PARAM_1='{"pair_code_id":'$(cat $CODE_DIR$SWAP_PAIR)', "token_code_id":'$(cat $CODE_DIR$SWAP_TOKEN)'}'
+    PARAM_2="SwapFactory"
+    printf "y\n" | Instantiate
+    sleep 5
 
-    # CATEGORY=$SWAP_ROUTER
-    # PARAM_1='{"classicmoon_factory": "'$(cat $ADDRESS_DIR$SWAP_FACTORY)'" }'
-    # PARAM_2="SwapRouter"
-    # printf "y\n" | Instantiate
-    # sleep 5
+    CATEGORY=$SWAP_ROUTER
+    PARAM_1='{"classicmoon_factory": "'$(cat $ADDRESS_DIR$SWAP_FACTORY)'" }'
+    PARAM_2="SwapRouter"
+    printf "y\n" | Instantiate
+    sleep 5
 }
 
 AddNativeTokenDecimal() {
@@ -359,9 +359,8 @@ UpdateFactoryMigrate() {
 
 #################################### End of Function ###################################################
 if [[ $FUNCTION == "" ]]; then
-    # BatchUpload
+    BatchUpload
     BatchInstantiate
-    # UpdateTreasury
 else
     $FUNCTION
 fi
