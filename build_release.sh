@@ -5,6 +5,7 @@ PARAM_1=$3
 PARAM_2=$4
 PARAM_3=$5
 ADDR_PRISM="terra1675g95dpcxulmwgyc0hvf66uxn7vcrr5az2vuk"
+ADDR_LP="terra1kmcl23z3hrqreua9c78qrqxpjdznh9gj6pxv0eteytypqyrvjc2shm3y4k"
 
 case $NETWORK in
  devnet)
@@ -223,28 +224,10 @@ AddNativeTokenDecimal() {
     sleep 5
 }
 
-CreatePair1() {
+CreatePair() {
     echo "================================================="
     echo "Start Create Pair"
     PARAM_1='{"create_pair": {"assets":[{"info": {"token":{"contract_addr":"'$(cat $ADDRESS_DIR$SWAP_TOKEN)'"}}, "amount": "0"}, {"info": {"native_token":{"denom":"uluna"}}, "amount": "0"}]}}'
-    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_FACTORY) "$PARAM_1" $WALLET $TXFLAG
-    sleep 5
-    echo "End Create Pair"
-}
-
-CreatePair2() {
-    echo "================================================="
-    echo "Start Create Pair"
-    PARAM_1='{"create_pair": {"assets":[{"info": {"token":{"contract_addr":"'$(cat $ADDRESS_DIR$SWAP_TOKEN)'"}}, "amount": "0"}, {"info": {"native_token":{"denom":"uusd"}}, "amount": "0"}]}}'
-    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_FACTORY) "$PARAM_1" $WALLET $TXFLAG
-    sleep 5
-    echo "End Create Pair"
-}
-
-CreatePair3() {
-    echo "================================================="
-    echo "Start Create Pair"
-    PARAM_1='{"create_pair": {"assets":[{"info": {"native_token":{"denom":"uluna"}}, "amount": "0"}, {"info": {"native_token":{"denom":"uusd"}}, "amount": "0"}]}}'
     printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_FACTORY) "$PARAM_1" $WALLET $TXFLAG
     sleep 5
     echo "End Create Pair"
@@ -262,7 +245,7 @@ TokenMint() {
 IncreaseAllowance() {
     echo "================================================="
     echo "Increase Allowance"
-    PARAM_1='{"increase_allowance": {"spender": "'$(cat $ADDRESS_DIR$SWAP_PAIR)'", "amount": "1000000", "expires": {"never": {}}}}'
+    PARAM_1='{"increase_allowance": {"spender": "'$(cat $ADDRESS_DIR$SWAP_PAIR)'", "amount": "100000000000", "expires": {"never": {}}}}'
     printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET $TXFLAG
     sleep 5
     echo "End"
@@ -297,10 +280,9 @@ RemoveLiquidity() {
     MSG='{"withdraw_liquidity": {}}'
     ENCODEDMSG=$(echo $MSG | base64 -w 0)
     echo $ENCODEDMSG
-    PARAM_1='{"send": {"contract": "terra1z8lg4vuvpssuze2pl3m5r3y7ne7zxk4t3d4327g2m0wacec9cmrqrtac5a", "amount": "1000000", "msg": "eyJ3aXRoZHJhd19saXF1aWRpdHkiOnt9fQ==" }}'
-    PARAM_2='LP_TOKEN'
-    echo "terrad tx wasm execute terra10lqax5avsef2ftfvj2ghwhu2elc40e6gxxzxuu2msa67hea3amsqn885ff "$PARAM_1" $WALLET $TXFLAG"
-    printf "y\n" | terrad tx wasm execute terra10lqax5avsef2ftfvj2ghwhu2elc40e6gxxzxuu2msa67hea3amsqn885ff "$PARAM_1" $WALLET $TXFLAG
+    PARAM_1='{"send": {"contract": "'$(cat $ADDRESS_DIR$SWAP_PAIR)'", "amount": "50000", "msg": "'$ENCODEDMSG'" }}'
+    echo "terrad tx wasm execute $ADDR_LP "$PARAM_1" $WALLET $TXFLAG"
+    printf "y\n" | terrad tx wasm execute $ADDR_LP "$PARAM_1" $WALLET $TXFLAG
     sleep 5
     echo "End"
 }
@@ -320,6 +302,28 @@ TokenBalance() {
     printf "y\n" | terrad query wasm contract-state smart terra10lqax5avsef2ftfvj2ghwhu2elc40e6gxxzxuu2msa67hea3amsqn885ff '{"balance":{"address":"terra10ytakemtdwy3hx5w9rfqdnvyxlhz4tss8zvxrs"}}' $NODECHAIN --output json
 }
 
+Balances() {
+    echo prism lunc balance
+    printf "y\n" | terrad query bank balances $ADDR_PRISM $NODECHAIN --output json
+    sleep 3
+
+    echo prism CLSM balance
+    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$SWAP_TOKEN) '{"balance":{"address":"'$ADDR_PRISM'"}}' $NODECHAIN --output json
+    sleep 3
+
+    echo prism LP balance
+    printf "y\n" | terrad query wasm contract-state smart $ADDR_LP '{"balance":{"address":"'$ADDR_PRISM'"}}' $NODECHAIN --output json
+    sleep 3
+
+    echo pair lunc balance
+    printf "y\n" | terrad query bank balances $(cat $ADDRESS_DIR$SWAP_PAIR) $NODECHAIN --output json
+    sleep 3
+
+    echo pair CLSM balance
+    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$SWAP_TOKEN) '{"balance":{"address":"'$(cat $ADDRESS_DIR$SWAP_PAIR)'"}}' $NODECHAIN --output json
+    sleep 3
+}
+
 NativeBalance() {
     # echo "terrad query bank balances terra1vxq5rfydw89k64k20kt767l5u6wvz3444hpacu $NODECHAIN --output json"
     echo prism account native balance
@@ -327,6 +331,9 @@ NativeBalance() {
     sleep 5
     echo prism2 account native balance
     printf "y\n" | terrad query bank balances "terra1tvlszuvjud7ckguglcmzdyh8wx9g0wy5ujhy0h" $NODECHAIN --output json
+    sleep 5
+    echo pair account native balance
+    printf "y\n" | terrad query bank balances "terra1nw42nudu6erp742fx37mm5k3jr3q55gyqu5a9gnegknzf4exwqtqmd2uay" $NODECHAIN --output json
     sleep 5
 }
 
