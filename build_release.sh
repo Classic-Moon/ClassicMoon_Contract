@@ -262,7 +262,7 @@ TokenMint() {
 IncreaseAllowance() {
     echo "================================================="
     echo "Increase Allowance"
-    PARAM_1='{"increase_allowance": {"spender": "'$(cat $ADDRESS_DIR$SWAP_PAIR)'", "amount": "10000", "expires": {"never": {}}}}'
+    PARAM_1='{"increase_allowance": {"spender": "'$(cat $ADDRESS_DIR$SWAP_PAIR)'", "amount": "1000000", "expires": {"never": {}}}}'
     printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET $TXFLAG
     sleep 5
     echo "End"
@@ -272,7 +272,7 @@ Allowance() {
     echo "================================================="
     echo "Allowance"
     PARAM_1='{"allowance": {"owner": "'$ADDR_ADMIN'", "spender": "'$(cat $ADDRESS_DIR$SWAP_PAIR)'"}}'
-    printf "y\n" | terrad query wasm contract-store $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $NODECHAIN --output json
+    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $NODECHAIN --output json
     sleep 5
     echo "End"
 }
@@ -284,9 +284,9 @@ Allowance() {
 AddLiquidity() {
     echo "================================================="
     echo "Start Add Liquidity"
-    PARAM_1='{"provide_liquidity": {"assets": [{"info": {"token":{"contract_addr":"'$(cat $ADDRESS_DIR$SWAP_TOKEN)'"}}, "amount": "10000"}, {"info": {"native_token":{"denom":"uluna"}}, "amount": "10"}]}}'
-    echo "terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_PAIR) "$PARAM_1" 10uluna $WALLET $TXFLAG"
-    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_PAIR) "$PARAM_1" 10uluna $WALLET $TXFLAG
+    PARAM_1='{"provide_liquidity": {"assets": [{"info": {"token":{"contract_addr":"'$(cat $ADDRESS_DIR$SWAP_TOKEN)'"}}, "amount": "1000000"}, {"info": {"native_token":{"denom":"uluna"}}, "amount": "10000"}]}}'
+    echo "terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_PAIR) "$PARAM_1" --amount 10000uluna $WALLET $TXFLAG"
+    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_PAIR) "$PARAM_1" --amount 10000uluna $WALLET $TXFLAG
     sleep 5
     echo "End"
 }
