@@ -139,7 +139,7 @@ Upload() {
         CODE_ID=$(terrad query tx $UPLOADTX $NODECHAIN --output json | jq -r '.logs[0].events[-1].attributes[1].value')
     done
     echo "Contract Code_id: "$CODE_ID
-    #save to FILE_CODE_ID
+    # save to FILE_CODE_ID
     echo $CODE_ID > $CODE_DIR$CATEGORY
 }
 
@@ -215,24 +215,6 @@ BatchInstantiate() {
     sleep 5
 }
 
-AddNativeTokenDecimal() {
-    PARAM_1='{"add_native_token_decimals": {"denom": "uluna", "decimals": 6}}'
-    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_FACTORY) "$PARAM_1" $WALLET $TXFLAG
-    sleep 5
-    PARAM_1='{"add_native_token_decimals": {"denom": "uusd", "decimals": 6}}'
-    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_FACTORY) "$PARAM_1" $WALLET $TXFLAG
-    sleep 5
-}
-
-CreatePair() {
-    echo "================================================="
-    echo "Start Create Pair"
-    PARAM_1='{"create_pair": {"assets":[{"info": {"token":{"contract_addr":"'$(cat $ADDRESS_DIR$SWAP_TOKEN)'"}}, "amount": "0"}, {"info": {"native_token":{"denom":"uluna"}}, "amount": "0"}]}}'
-    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_FACTORY) "$PARAM_1" $WALLET $TXFLAG
-    sleep 5
-    echo "End Create Pair"
-}
-
 TokenMint() {
     echo "================================================="
     echo "Mint"
@@ -267,9 +249,9 @@ Allowance() {
 AddLiquidity() {
     echo "================================================="
     echo "Start Add Liquidity"
-    PARAM_1='{"provide_liquidity": {"assets": [{"info": {"token":{"contract_addr":"'$(cat $ADDRESS_DIR$SWAP_TOKEN)'"}}, "amount": "1000000"}, {"info": {"native_token":{"denom":"uluna"}}, "amount": "10000"}]}}'
-    echo "terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_PAIR) "$PARAM_1" --amount 10000uluna $WALLET $TXFLAG"
-    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_PAIR) "$PARAM_1" --amount 10000uluna $WALLET $TXFLAG
+    PARAM_1='{"provide_liquidity": {"assets": [{"info": {"token":{"contract_addr":"'$(cat $ADDRESS_DIR$SWAP_TOKEN)'"}}, "amount": "100000000"}, {"info": {"native_token":{"denom":"uluna"}}, "amount": "1000000"}]}}'
+    echo "terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_PAIR) "$PARAM_1" --amount 1000000uluna $WALLET $TXFLAG"
+    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_PAIR) "$PARAM_1" --amount 1000000uluna $WALLET $TXFLAG
     sleep 5
     echo "End"
 }
@@ -279,10 +261,31 @@ RemoveLiquidity() {
     echo "Start Remove Liquidity"
     MSG='{"withdraw_liquidity": {}}'
     ENCODEDMSG=$(echo $MSG | base64 -w 0)
-    echo $ENCODEDMSG
     PARAM_1='{"send": {"contract": "'$(cat $ADDRESS_DIR$SWAP_PAIR)'", "amount": "50000", "msg": "'$ENCODEDMSG'" }}'
     echo "terrad tx wasm execute $ADDR_LP "$PARAM_1" $WALLET $TXFLAG"
     printf "y\n" | terrad tx wasm execute $ADDR_LP "$PARAM_1" $WALLET $TXFLAG
+    sleep 5
+    echo "End"
+}
+
+SwapLuncToClsm() {
+    echo "================================================="
+    echo "Start SwapLuncToClsm"
+    PARAM_1='{"swap": {"offer_asset": {"info": {"native_token":{"denom":"uluna"}}, "amount": "100000"}}}'
+    echo "terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_PAIR) "$PARAM_1" --amount 100000uluna $WALLET $TXFLAG"
+    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_PAIR) "$PARAM_1" --amount 100000uluna $WALLET $TXFLAG
+    sleep 5
+    echo "End"
+}
+
+SwapClsmToLunc() {
+    echo "================================================="
+    echo "Start SwapClsmToLunc"
+    MSG='{"swap": {}}'
+    ENCODEDMSG=$(echo $MSG | base64 -w 0)
+    PARAM_1='{"send": {"contract": "'$(cat $ADDRESS_DIR$SWAP_PAIR)'", "amount": "10000000", "msg": "'$ENCODEDMSG'" }}'
+    echo "terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET $TXFLAG"
+    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET $TXFLAG
     sleep 5
     echo "End"
 }
@@ -324,46 +327,6 @@ Balances() {
     sleep 3
 }
 
-NativeBalance() {
-    # echo "terrad query bank balances terra1vxq5rfydw89k64k20kt767l5u6wvz3444hpacu $NODECHAIN --output json"
-    echo prism account native balance
-    printf "y\n" | terrad query bank balances "terra1675g95dpcxulmwgyc0hvf66uxn7vcrr5az2vuk" $NODECHAIN --output json
-    sleep 5
-    echo prism2 account native balance
-    printf "y\n" | terrad query bank balances "terra1tvlszuvjud7ckguglcmzdyh8wx9g0wy5ujhy0h" $NODECHAIN --output json
-    sleep 5
-    echo pair account native balance
-    printf "y\n" | terrad query bank balances "terra1nw42nudu6erp742fx37mm5k3jr3q55gyqu5a9gnegknzf4exwqtqmd2uay" $NODECHAIN --output json
-    sleep 5
-}
-
-UpdateFactoryConfig() {
-    echo "================================================="
-    echo "Update Path List for Treasury"
-    PARAM_1='{"update_config": {"token_code_id": 7513 }}'
-    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_FACTORY) "$PARAM_1" $WALLET $TXFLAG
-    sleep 5
-    echo "End"
-}
-
-UpdateFactoryOwner() {
-    echo "================================================="
-    echo "Update Path List for Treasury"
-    PARAM_1='{"update_config": {"owner": "terra1pu4jxet2ndtftqmwsrgfsznczrcea3mt6ugcnr" }}'
-    printf "y\n" | terrad tx wasm execute terra1pehs2vsd8gadequgmzx36ycrh9hak3f2mxrw20 "$PARAM_1" 10uluna $WALLET $TXFLAG
-    sleep 5
-    echo "End"
-}
-
-UpdateFactoryMigrate() {
-    echo "================================================="
-    echo "Update Staked Amount"
-    PARAM_1='{"migrate_pair": { "contract": "terra100n9lqfn8zm3twamm5ehapn2szy2ljmmnpt0hm", "code_id": 7094 }}'
-    printf "y\n" | terrad tx wasm execute terra14pgqzyv8n9ulpcs3jg0ku63cnjs9nc47yc7sjc "$PARAM_1" 10uluna $WALLET $TXFLAG
-    sleep 5
-    echo "End"
-}
-
 #################################### End of Function ###################################################
 if [[ $FUNCTION == "" ]]; then
     BatchUpload
@@ -372,22 +335,13 @@ else
     $FUNCTION
 fi
 
-
 ##################################################
 # 1. Upload
 #    - Token 
 #    - Pair
-#    - Factory
-#    - Router
 #
 # 2. Instantiate
 #    - Token
 #    - Pair
-#    - Factory
-#    - Router
-#
-# 3. AddNativeTokenDecimal (LUNC, USTC)
-#    Before this, send LUNC, USTC a bit.
-# 4. CreatePair1, CreatePair2, CreatePair3
 #
 ##################################################
