@@ -34,8 +34,8 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 const INSTANTIATE_REPLY_ID: u64 = 1;
 
-/// Commission rate == 0.3%
-const COMMISSION_RATE: u64 = 3;
+/// Commission rate == 0.2%
+const COMMISSION_RATE: u64 = 2;
 
 const MINIMUM_LIQUIDITY_AMOUNT: u128 = 1_000;
 
