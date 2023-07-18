@@ -1,7 +1,7 @@
 use crate::asset::{Asset, AssetInfo, AssetInfoRaw, AssetRaw, PairInfo};
 use crate::mock_querier::mock_dependencies;
 use crate::querier::{
-    query_all_balances, query_balance, query_pair_info, query_token_balance, query_token_info,
+    query_all_balances, query_balance, query_token_balance, query_token_info,
 };
 
 use cosmwasm_std::testing::MOCK_CONTRACT_ADDR;
@@ -383,46 +383,4 @@ fn test_asset_info_raw_equal() {
     assert!(!token_asset_info_raw.equal(&AssetInfoRaw::NativeToken {
         denom: "uluna".to_string()
     }));
-}
-
-#[test]
-fn query_classicmoon_pair_contract() {
-    let mut deps = mock_dependencies(&[]);
-
-    deps.querier.with_classicmoon_factory(
-        &[(
-            &"asset0000uusd".to_string(),
-            &PairInfo {
-                asset_infos: [
-                    AssetInfo::Token {
-                        contract_addr: "asset0000".to_string(),
-                    },
-                    AssetInfo::NativeToken {
-                        denom: "uusd".to_string(),
-                    },
-                ],
-                contract_addr: "pair0000".to_string(),
-                liquidity_token: "liquidity0000".to_string(),
-                asset_decimals: [6u8, 6u8],
-            },
-        )],
-        &[("uusd".to_string(), 6u8)],
-    );
-
-    let pair_info: PairInfo = query_pair_info(
-        &deps.as_ref().querier,
-        Addr::unchecked(MOCK_CONTRACT_ADDR),
-        &[
-            AssetInfo::Token {
-                contract_addr: "asset0000".to_string(),
-            },
-            AssetInfo::NativeToken {
-                denom: "uusd".to_string(),
-            },
-        ],
-    )
-    .unwrap();
-
-    assert_eq!(pair_info.contract_addr, Addr::unchecked("pair0000"),);
-    assert_eq!(pair_info.liquidity_token, Addr::unchecked("liquidity0000"),);
 }

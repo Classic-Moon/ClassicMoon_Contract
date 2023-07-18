@@ -1,5 +1,4 @@
 use crate::asset::{Asset, AssetInfo, PairInfo};
-use crate::factory::{NativeTokenDecimalsResponse, QueryMsg as FactoryQueryMsg};
 use crate::pair::{QueryMsg as PairQueryMsg, ReverseSimulationResponse, SimulationResponse};
 
 use classic_bindings::TerraQuery;
@@ -61,32 +60,6 @@ pub fn query_token_info(
     }))?;
 
     Ok(token_info)
-}
-
-pub fn query_native_decimals(
-    querier: &QuerierWrapper<TerraQuery>,
-    factory_contract: Addr,
-    denom: String,
-) -> StdResult<u8> {
-    let res: NativeTokenDecimalsResponse =
-        querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-            contract_addr: factory_contract.to_string(),
-            msg: to_binary(&FactoryQueryMsg::NativeTokenDecimals { denom })?,
-        }))?;
-    Ok(res.decimals)
-}
-
-pub fn query_pair_info(
-    querier: &QuerierWrapper<TerraQuery>,
-    factory_contract: Addr,
-    asset_infos: &[AssetInfo; 2],
-) -> StdResult<PairInfo> {
-    querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-        contract_addr: factory_contract.to_string(),
-        msg: to_binary(&FactoryQueryMsg::Pair {
-            asset_infos: asset_infos.clone(),
-        })?,
-    }))
 }
 
 pub fn simulate(

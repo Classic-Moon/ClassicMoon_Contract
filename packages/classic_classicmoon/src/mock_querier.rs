@@ -8,7 +8,6 @@ use std::marker::PhantomData;
 use std::panic;
 
 use crate::asset::{AssetInfo, PairInfo};
-use crate::factory::{NativeTokenDecimalsResponse, QueryMsg as FactoryQueryMsg};
 use crate::pair::QueryMsg as PairQueryMsg;
 use crate::pair::{ReverseSimulationResponse, SimulationResponse};
 use classic_bindings::{SwapResponse, TaxCapResponse, TaxRateResponse, TerraQuery};
@@ -176,136 +175,100 @@ impl WasmMockQuerier {
                 _ => panic!("DO NOT ENTER HERE"),
             },
             QueryRequest::Wasm(WasmQuery::Smart { contract_addr, msg }) => match from_binary(msg) {
-                Ok(FactoryQueryMsg::Pair { asset_infos }) => {
-                    let key = [asset_infos[0].to_string(), asset_infos[1].to_string()].join("");
-                    let mut sort_key: Vec<char> = key.chars().collect();
-                    sort_key.sort_by(|a, b| b.cmp(a));
-                    match self
-                        .classicmoon_factory_querier
-                        .pairs
-                        .get(&String::from_iter(sort_key.iter()))
-                    {
-                        Some(v) => SystemResult::Ok(ContractResult::Ok(to_binary(v).unwrap())),
-                        None => SystemResult::Err(SystemError::InvalidRequest {
-                            error: "No pair info exists".to_string(),
-                            request: msg.as_slice().into(),
-                        }),
-                    }
+                Ok(PairQueryMsg::Pair {}) => {
+                    SystemResult::Ok(ContractResult::from(to_binary(&PairInfo {
+                        asset_infos: [
+                            AssetInfo::NativeToken {
+                                denom: "uluna".to_string(),
+                            },
+                            AssetInfo::NativeToken {
+                                denom: "uluna".to_string(),
+                            },
+                        ],
+                        asset_decimals: [6u8, 6u8],
+                        contract_addr: "pair0000".to_string(),
+                        liquidity_token: "liquidity0000".to_string(),
+                    })))
                 }
-                Ok(FactoryQueryMsg::NativeTokenDecimals { denom }) => {
-                    match self
-                        .classicmoon_factory_querier
-                        .native_token_decimals
-                        .get(&denom)
-                    {
-                        Some(decimals) => SystemResult::Ok(ContractResult::Ok(
-                            to_binary(&NativeTokenDecimalsResponse {
-                                decimals: *decimals,
-                            })
-                            .unwrap(),
-                        )),
-                        None => SystemResult::Err(SystemError::InvalidRequest {
-                            error: "No decimal info exist".to_string(),
-                            request: msg.as_slice().into(),
-                        }),
-                    }
+                Ok(PairQueryMsg::Simulation { offer_asset }) => {
+                    SystemResult::Ok(ContractResult::from(to_binary(&SimulationResponse {
+                        return_amount: offer_asset.amount,
+                        commission_amount: Uint128::zero(),
+                        spread_amount: Uint128::zero(),
+                    })))
                 }
-                _ => match from_binary(msg) {
-                    Ok(PairQueryMsg::Pair {}) => {
-                        SystemResult::Ok(ContractResult::from(to_binary(&PairInfo {
-                            asset_infos: [
-                                AssetInfo::NativeToken {
-                                    denom: "uluna".to_string(),
-                                },
-                                AssetInfo::NativeToken {
-                                    denom: "uluna".to_string(),
-                                },
-                            ],
-                            asset_decimals: [6u8, 6u8],
-                            contract_addr: "pair0000".to_string(),
-                            liquidity_token: "liquidity0000".to_string(),
-                        })))
-                    }
-                    Ok(PairQueryMsg::Simulation { offer_asset }) => {
-                        SystemResult::Ok(ContractResult::from(to_binary(&SimulationResponse {
-                            return_amount: offer_asset.amount,
-                            commission_amount: Uint128::zero(),
-                            spread_amount: Uint128::zero(),
-                        })))
-                    }
-                    Ok(PairQueryMsg::ReverseSimulation { ask_asset }) => SystemResult::Ok(
-                        ContractResult::from(to_binary(&ReverseSimulationResponse {
-                            offer_amount: ask_asset.amount,
-                            commission_amount: Uint128::zero(),
-                            spread_amount: Uint128::zero(),
-                        })),
-                    ),
-                    _ => match from_binary(msg).unwrap() {
-                        Cw20QueryMsg::TokenInfo {} => {
-                            let balances: &HashMap<String, Uint128> =
-                                match self.token_querier.balances.get(contract_addr) {
-                                    Some(balances) => balances,
-                                    None => {
-                                        return SystemResult::Err(SystemError::InvalidRequest {
-                                            error: format!(
-                                                "No balance info exists for the contract {}",
-                                                contract_addr
-                                            ),
-                                            request: msg.as_slice().into(),
-                                        })
-                                    }
-                                };
-
-                            let mut total_supply = Uint128::zero();
-
-                            for balance in balances {
-                                total_supply += *balance.1;
-                            }
-
-                            SystemResult::Ok(ContractResult::Ok(
-                                to_binary(&TokenInfoResponse {
-                                    name: "mAAPL".to_string(),
-                                    symbol: "mAAPL".to_string(),
-                                    decimals: 8,
-                                    total_supply,
-                                })
-                                .unwrap(),
-                            ))
-                        }
-                        Cw20QueryMsg::Balance { address } => {
-                            let balances: &HashMap<String, Uint128> =
-                                match self.token_querier.balances.get(contract_addr) {
-                                    Some(balances) => balances,
-                                    None => {
-                                        return SystemResult::Err(SystemError::InvalidRequest {
-                                            error: format!(
-                                                "No balance info exists for the contract {}",
-                                                contract_addr
-                                            ),
-                                            request: msg.as_slice().into(),
-                                        })
-                                    }
-                                };
-
-                            let balance = match balances.get(&address) {
-                                Some(v) => *v,
+                Ok(PairQueryMsg::ReverseSimulation { ask_asset }) => SystemResult::Ok(
+                    ContractResult::from(to_binary(&ReverseSimulationResponse {
+                        offer_amount: ask_asset.amount,
+                        commission_amount: Uint128::zero(),
+                        spread_amount: Uint128::zero(),
+                    })),
+                ),
+                _ => match from_binary(msg).unwrap() {
+                    Cw20QueryMsg::TokenInfo {} => {
+                        let balances: &HashMap<String, Uint128> =
+                            match self.token_querier.balances.get(contract_addr) {
+                                Some(balances) => balances,
                                 None => {
-                                    return SystemResult::Ok(ContractResult::Ok(
-                                        to_binary(&Cw20BalanceResponse {
-                                            balance: Uint128::zero(),
-                                        })
-                                        .unwrap(),
-                                    ));
+                                    return SystemResult::Err(SystemError::InvalidRequest {
+                                        error: format!(
+                                            "No balance info exists for the contract {}",
+                                            contract_addr
+                                        ),
+                                        request: msg.as_slice().into(),
+                                    })
                                 }
                             };
 
-                            SystemResult::Ok(ContractResult::Ok(
-                                to_binary(&Cw20BalanceResponse { balance }).unwrap(),
-                            ))
+                        let mut total_supply = Uint128::zero();
+
+                        for balance in balances {
+                            total_supply += *balance.1;
                         }
 
-                        _ => panic!("DO NOT ENTER HERE"),
-                    },
+                        SystemResult::Ok(ContractResult::Ok(
+                            to_binary(&TokenInfoResponse {
+                                name: "mAAPL".to_string(),
+                                symbol: "mAAPL".to_string(),
+                                decimals: 8,
+                                total_supply,
+                            })
+                            .unwrap(),
+                        ))
+                    }
+                    Cw20QueryMsg::Balance { address } => {
+                        let balances: &HashMap<String, Uint128> =
+                            match self.token_querier.balances.get(contract_addr) {
+                                Some(balances) => balances,
+                                None => {
+                                    return SystemResult::Err(SystemError::InvalidRequest {
+                                        error: format!(
+                                            "No balance info exists for the contract {}",
+                                            contract_addr
+                                        ),
+                                        request: msg.as_slice().into(),
+                                    })
+                                }
+                            };
+
+                        let balance = match balances.get(&address) {
+                            Some(v) => *v,
+                            None => {
+                                return SystemResult::Ok(ContractResult::Ok(
+                                    to_binary(&Cw20BalanceResponse {
+                                        balance: Uint128::zero(),
+                                    })
+                                    .unwrap(),
+                                ));
+                            }
+                        };
+
+                        SystemResult::Ok(ContractResult::Ok(
+                            to_binary(&Cw20BalanceResponse { balance }).unwrap(),
+                        ))
+                    }
+
+                    _ => panic!("DO NOT ENTER HERE"),
                 },
             },
             _ => self.base.handle_query(request),
@@ -365,34 +328,6 @@ mod mock_exception {
                 request: Binary(vec![])
             })
         );
-    }
-
-    #[test]
-    fn none_factory_pair_will_err() {
-        let deps = mock_dependencies(&[]);
-
-        let msg = to_binary(&FactoryQueryMsg::Pair {
-            asset_infos: [
-                AssetInfo::NativeToken {
-                    denom: "uluna".to_string(),
-                },
-                AssetInfo::NativeToken {
-                    denom: "ulunc".to_string(),
-                },
-            ],
-        })
-        .unwrap();
-        assert_eq!(
-            deps.querier
-                .handle_query(&QueryRequest::Wasm(WasmQuery::Smart {
-                    contract_addr: "contract0000".to_string(),
-                    msg: msg.clone()
-                })),
-            SystemResult::Err(SystemError::InvalidRequest {
-                error: "No pair info exists".to_string(),
-                request: msg
-            })
-        )
     }
 
     #[test]

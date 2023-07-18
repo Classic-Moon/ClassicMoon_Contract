@@ -5,7 +5,8 @@ PARAM_1=$3
 PARAM_2=$4
 PARAM_3=$5
 ADDR_PRISM="terra1675g95dpcxulmwgyc0hvf66uxn7vcrr5az2vuk"
-ADDR_LP="terra1kmcl23z3hrqreua9c78qrqxpjdznh9gj6pxv0eteytypqyrvjc2shm3y4k"
+ADDR_PRISM2="terra1tvlszuvjud7ckguglcmzdyh8wx9g0wy5ujhy0h"
+ADDR_LP="terra1c46yg4qqf73hw8u2e9m4nm3hadpv02ahvpt2hl2avzkyrlk3ezwqxsvvu6"
 
 case $NETWORK in
  devnet)
@@ -202,6 +203,7 @@ BatchInstantiate() {
 ##############################################
 
 Balances() {
+    ############### prism ###############
     echo prism lunc balance
     printf "y\n" | terrad query bank balances $ADDR_PRISM $NODECHAIN --output json
     sleep 3
@@ -214,12 +216,30 @@ Balances() {
     printf "y\n" | terrad query wasm contract-state smart $ADDR_LP '{"balance":{"address":"'$ADDR_PRISM'"}}' $NODECHAIN --output json
     sleep 3
 
+    ############### prism2 ###############
+    echo prism2 lunc balance
+    printf "y\n" | terrad query bank balances $ADDR_PRISM2 $NODECHAIN --output json
+    sleep 3
+
+    echo prism2 CLSM balance
+    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$SWAP_TOKEN) '{"balance":{"address":"'$ADDR_PRISM2'"}}' $NODECHAIN --output json
+    sleep 3
+
+    echo prism2 LP balance
+    printf "y\n" | terrad query wasm contract-state smart $ADDR_LP '{"balance":{"address":"'$ADDR_PRISM2'"}}' $NODECHAIN --output json
+    sleep 3
+
+    ############### pair ###############
     echo pair lunc balance
     printf "y\n" | terrad query bank balances $(cat $ADDRESS_DIR$SWAP_PAIR) $NODECHAIN --output json
     sleep 3
 
     echo pair CLSM balance
     printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$SWAP_TOKEN) '{"balance":{"address":"'$(cat $ADDRESS_DIR$SWAP_PAIR)'"}}' $NODECHAIN --output json
+    sleep 3
+
+    echo pair LP balance
+    printf "y\n" | terrad query wasm contract-state smart $ADDR_LP '{"balance":{"address":"'$(cat $ADDRESS_DIR$SWAP_PAIR)'"}}' $NODECHAIN --output json
     sleep 3
 }
 
@@ -230,9 +250,9 @@ Balances() {
 TokenMint() {
     echo "================================================="
     echo "Mint"
-    PARAM_1='{"mint": {"recipient": "terra128a44yv7aa6lr6ee6x8uh9dz80ya4x2kfljqed", "amount": "1000000000000" }}'
-    echo "terrad tx wasm execute "terra1p6et9n7nsqa65a9um38g32ugzt5feaat74x2qm" "$PARAM_1" 10uluna $WALLET $TXFLAG"
-    printf "y\n" | terrad tx wasm execute "terra1p6et9n7nsqa65a9um38g32ugzt5feaat74x2qm" "$PARAM_1" 10uluna $WALLET $TXFLAG
+    PARAM_1='{"mint": {"recipient": "'$ADDR_PRISM2'", "amount": "1000000000000" }}'
+    echo "terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET $TXFLAG"
+    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET $TXFLAG
     sleep 5
 }
 
@@ -248,10 +268,10 @@ IncreaseAllowance() {
 TokenTransfer () {
     echo "================================================="
     echo "Start Transfer"
-    PARAM_1='{"transfer": {"recipient": "terra1tvlszuvjud7ckguglcmzdyh8wx9g0wy5ujhy0h", "amount": "1000000000" }}'
+    PARAM_1='{"transfer": {"recipient": "'$ADDR_PRISM2'", "amount": "1000000000" }}'
     PARAM_2='TCLSM'
-    echo "terrad tx wasm execute terra1cjf9ug5hyq3wate9vlhsdxgvklkv3npcm8u5sfu83gly0c8ljjvq50az2d "$PARAM_1" $WALLET $TXFLAG"
-    printf "y\n" | terrad tx wasm execute terra1cjf9ug5hyq3wate9vlhsdxgvklkv3npcm8u5sfu83gly0c8ljjvq50az2d "$PARAM_1" $WALLET $TXFLAG
+    echo "terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET $TXFLAG"
+    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET $TXFLAG
     sleep 5
     echo "End"
 }
@@ -373,8 +393,28 @@ ReverseSimulationClsmFromLunc() {
 
 #################################### End of Function ###################################################
 if [[ $FUNCTION == "" ]]; then
-    BatchUpload
-    BatchInstantiate
+    # 1 Run First Part
+    # BatchUpload
+    # BatchInstantiate
+
+    # 2 Replace ADDR_LP
+
+    # 3 Run Second Part
+    Balances
+    TokenMint
+    IncreaseAllowance
+    GetAllowance
+    AddLiquidity
+    RemoveLiquidity
+    SwapLuncToClsm
+    SwapClsmToLunc
+    GetPair
+    GetPool
+    SimulationClsmToLunc
+    SimulationLuncToClsm
+    ReverseSimulationLuncFromClsm
+    ReverseSimulationClsmFromLunc
+    Balances
 else
     $FUNCTION
 fi

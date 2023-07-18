@@ -2,7 +2,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
-use crate::querier::{query_balance, query_native_decimals, query_token_balance, query_token_info};
+use crate::querier::{query_balance, query_token_balance, query_token_info};
 use classic_bindings::{TerraMsg, TerraQuerier, TerraQuery};
 use cosmwasm_std::{
     to_binary, Addr, Api, BankMsg, CanonicalAddr, Coin, CosmosMsg, Decimal, MessageInfo,
@@ -200,22 +200,6 @@ impl AssetInfo {
                     AssetInfo::Token { .. } => false,
                     AssetInfo::NativeToken { denom, .. } => self_denom == denom,
                 }
-            }
-        }
-    }
-
-    pub fn query_decimals(
-        &self,
-        account_addr: Addr,
-        querier: &QuerierWrapper<TerraQuery>,
-    ) -> StdResult<u8> {
-        match self {
-            AssetInfo::NativeToken { denom } => {
-                query_native_decimals(querier, account_addr, denom.to_string())
-            }
-            AssetInfo::Token { contract_addr } => {
-                let token_info = query_token_info(querier, Addr::unchecked(contract_addr))?;
-                Ok(token_info.decimals)
             }
         }
     }
