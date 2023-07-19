@@ -13,7 +13,7 @@ use cosmwasm_std::{
 use classic_bindings::{TerraMsg, TerraQuery};
 
 use classic_classicmoon::asset::{Asset, AssetInfo, ClassicmoonInfo, ClassicmoonInfoRaw};
-use classic_classicmoon::pair::{
+use classic_classicmoon::classicmoon::{
     Cw20HookMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, PoolResponse, QueryMsg,
     ReverseSimulationResponse, SimulationResponse,
 };
@@ -25,11 +25,23 @@ use std::convert::TryInto;
 use std::ops::Mul;
 
 // version info for migration info
-const CONTRACT_NAME: &str = "crates.io:classicmoon-pair";
+const CONTRACT_NAME: &str = "crates.io:classicmoon";
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-/// Commission rate == 0.2%
-const COMMISSION_RATE: u64 = 2;
+const COMMISSION_RATE: u64 = 2; // commission rate = 0.2%
+// const DISTRIBUTE_RATE: u64 = 500; // distribute rate = 50%
+// const MARKETING_RATE: u64 = 500; // marketing rate = 50%
+// const VESTING_DURATION: u64 = 30 * 86400; // 1 month
+// const VESTING_COUNT: u64 = 40; // 40 months
+// const VESTING_AMOUNT: Uint128 = Uint128::new(680_000_000_000_000_000); // vesting amount = 680 billion
+// const AUTOBURN_DURATION: u64 = 10 * 86400; // 10 days
+// const CIRCULATING_LIMIT: Uint128 = Uint128::new(10_000_000_000_000_000); // circulating_supply_limit = 10 billion
+// const BURN_ABOVE_RATE: u64 = 500; // burn above rate = 50%
+// const BURN_BELOW_RATE: u64 = 500; // burn below rate = 1%
+// const TERSURY_WALLET: &str = "terra1675g95dpcxulmwgyc0hvf66uxn7vcrr5az2vuk"; // TODO treasury wallet(now prism)
+// const BURN_WALLET: &str = "terra1sk06e3dyexuq4shw77y3dsv480xv42mq73anxu"; // burn-listing wallet
+// const MARKET_WALLET: &str = "terra1rf76ceh3u0592yd490gucg9kfkvtye3zym95vk"; // marketing-listing wallet
+// const START_TIMESTAMP: u64 = 1689773070; // TODO token contract deployed timestamp
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -40,9 +52,11 @@ pub fn instantiate(
 ) -> StdResult<Response<TerraMsg>> {
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
 
-    let pair_info: &ClassicmoonInfoRaw = &ClassicmoonInfoRaw {
+    let classicmoon_info: &ClassicmoonInfoRaw = &ClassicmoonInfoRaw {
         contract_addr: deps.api.addr_canonicalize(env.contract.address.as_str())?,
         liquidity_k_value: Uint128::zero(),
+        vesting_epoch: 0,
+        autoburn_epoch: 0,
         asset_infos: [
             msg.asset_infos[0].to_raw(deps.api)?,
             msg.asset_infos[1].to_raw(deps.api)?,
@@ -50,7 +64,7 @@ pub fn instantiate(
         asset_decimals: msg.asset_decimals,
     };
 
-    CLASSICMOON_INFO.save(deps.storage, pair_info)?;
+    CLASSICMOON_INFO.save(deps.storage, classicmoon_info)?;
 
     Ok(Response::default())
 }
@@ -201,9 +215,9 @@ pub fn provide_liquidity(
         asset.assert_sent_native_token_balance(&info)?;
     }
 
-    let pair_info: ClassicmoonInfoRaw = CLASSICMOON_INFO.load(deps.storage)?;
+    let classicmoon_info: ClassicmoonInfoRaw = CLASSICMOON_INFO.load(deps.storage)?;
     let mut pools: [Asset; 2] =
-        pair_info.query_pools(&deps.querier, deps.api, env.contract.address.clone())?;
+        classicmoon_info.query_pools(&deps.querier, deps.api, env.contract.address.clone())?;
     let deposits: [Uint128; 2] = [
         assets
             .iter()
@@ -226,7 +240,7 @@ pub fn provide_liquidity(
         }
     }
 
-    let total_share = pair_info.liquidity_k_value;
+    let total_share = classicmoon_info.liquidity_k_value;
     let share = if total_share.is_zero() {
         // Initial share = collateral amount
         let deposit0: Uint256 = deposits[0].into();
@@ -337,10 +351,10 @@ pub fn withdraw_liquidity(
 ) -> Result<Response<TerraMsg>, ContractError> {
     assert_deadline(env.block.time.seconds(), deadline)?;
 
-    let pair_info: ClassicmoonInfoRaw = CLASSICMOON_INFO.load(deps.storage)?;
+    let classicmoon_info: ClassicmoonInfoRaw = CLASSICMOON_INFO.load(deps.storage)?;
 
-    let pools: [Asset; 2] = pair_info.query_pools(&deps.querier, deps.api, env.contract.address)?;
-    let total_share: Uint128 = pair_info.liquidity_k_value;
+    let pools: [Asset; 2] = classicmoon_info.query_pools(&deps.querier, deps.api, env.contract.address)?;
+    let total_share: Uint128 = classicmoon_info.liquidity_k_value;
 
     let share_ratio: Decimal = Decimal::from_ratio(amount, total_share);
     let refund_assets: Vec<Asset> = pools
@@ -396,9 +410,9 @@ pub fn swap(
 
     offer_asset.assert_sent_native_token_balance(&info)?;
 
-    let pair_info: ClassicmoonInfoRaw = CLASSICMOON_INFO.load(deps.storage)?;
+    let classicmoon_info: ClassicmoonInfoRaw = CLASSICMOON_INFO.load(deps.storage)?;
 
-    let pools: [Asset; 2] = pair_info.query_pools(&deps.querier, deps.api, env.contract.address)?;
+    let pools: [Asset; 2] = classicmoon_info.query_pools(&deps.querier, deps.api, env.contract.address)?;
 
     let offer_pool: Asset;
     let ask_pool: Asset;
@@ -414,8 +428,8 @@ pub fn swap(
         };
         ask_pool = pools[1].clone();
 
-        offer_decimal = pair_info.asset_decimals[0];
-        ask_decimal = pair_info.asset_decimals[1];
+        offer_decimal = classicmoon_info.asset_decimals[0];
+        ask_decimal = classicmoon_info.asset_decimals[1];
     } else if offer_asset.info.equal(&pools[1].info) {
         offer_pool = Asset {
             amount: pools[1].amount.checked_sub(offer_asset.amount)?,
@@ -423,13 +437,14 @@ pub fn swap(
         };
         ask_pool = pools[0].clone();
 
-        offer_decimal = pair_info.asset_decimals[1];
-        ask_decimal = pair_info.asset_decimals[0];
+        offer_decimal = classicmoon_info.asset_decimals[1];
+        ask_decimal = classicmoon_info.asset_decimals[0];
     } else {
         return Err(ContractError::AssetMismatch {});
     }
 
     let offer_amount = offer_asset.amount;
+    // TODO 0.2% fee check commission_amount
     let (return_amount, spread_amount, commission_amount) =
         compute_swap(offer_pool.amount, ask_pool.amount, offer_amount)?;
 
@@ -449,7 +464,7 @@ pub fn swap(
         ask_decimal,
     )?;
 
-    // compute tax
+    // compute tax (0.5% for Native Token by Lunc Policy)
     let tax_amount = return_asset.compute_tax(&deps.querier)?;
     let receiver = to.unwrap_or_else(|| sender.clone());
 
@@ -457,6 +472,9 @@ pub fn swap(
     if !return_amount.is_zero() {
         messages.push(return_asset.into_msg(&deps.querier, receiver.clone())?);
     }
+
+    // TODO vesting
+    // TODO autoburn
 
     // 1. send collateral token from the contract to a user
     // 2. send inactive commission to collector
@@ -477,7 +495,7 @@ pub fn swap(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps<TerraQuery>, _env: Env, msg: QueryMsg) -> Result<Binary, ContractError> {
     match msg {
-        QueryMsg::Pair {} => Ok(to_binary(&query_pair_info(deps)?)?),
+        QueryMsg::Classicmoon {} => Ok(to_binary(&query_classicmoon_info(deps)?)?),
         QueryMsg::Pool {} => Ok(to_binary(&query_pool(deps)?)?),
         QueryMsg::Simulation { offer_asset } => {
             Ok(to_binary(&query_simulation(deps, offer_asset)?)?)
@@ -488,18 +506,18 @@ pub fn query(deps: Deps<TerraQuery>, _env: Env, msg: QueryMsg) -> Result<Binary,
     }
 }
 
-pub fn query_pair_info(deps: Deps<TerraQuery>) -> Result<ClassicmoonInfo, ContractError> {
-    let pair_info: ClassicmoonInfoRaw = CLASSICMOON_INFO.load(deps.storage)?;
-    let pair_info = pair_info.to_normal(deps.api)?;
+pub fn query_classicmoon_info(deps: Deps<TerraQuery>) -> Result<ClassicmoonInfo, ContractError> {
+    let classicmoon_info: ClassicmoonInfoRaw = CLASSICMOON_INFO.load(deps.storage)?;
+    let classicmoon_info = classicmoon_info.to_normal(deps.api)?;
 
-    Ok(pair_info)
+    Ok(classicmoon_info)
 }
 
 pub fn query_pool(deps: Deps<TerraQuery>) -> Result<PoolResponse, ContractError> {
-    let pair_info: ClassicmoonInfoRaw = CLASSICMOON_INFO.load(deps.storage)?;
-    let contract_addr = deps.api.addr_humanize(&pair_info.contract_addr)?;
-    let assets: [Asset; 2] = pair_info.query_pools(&deps.querier, deps.api, contract_addr)?;
-    let total_share: Uint128 = pair_info.liquidity_k_value;
+    let classicmoon_info: ClassicmoonInfoRaw = CLASSICMOON_INFO.load(deps.storage)?;
+    let contract_addr = deps.api.addr_humanize(&classicmoon_info.contract_addr)?;
+    let assets: [Asset; 2] = classicmoon_info.query_pools(&deps.querier, deps.api, contract_addr)?;
+    let total_share: Uint128 = classicmoon_info.liquidity_k_value;
 
     let resp = PoolResponse {
         assets,
@@ -513,10 +531,10 @@ pub fn query_simulation(
     deps: Deps<TerraQuery>,
     offer_asset: Asset,
 ) -> Result<SimulationResponse, ContractError> {
-    let pair_info: ClassicmoonInfoRaw = CLASSICMOON_INFO.load(deps.storage)?;
+    let classicmoon_info: ClassicmoonInfoRaw = CLASSICMOON_INFO.load(deps.storage)?;
 
-    let contract_addr = deps.api.addr_humanize(&pair_info.contract_addr)?;
-    let pools: [Asset; 2] = pair_info.query_pools(&deps.querier, deps.api, contract_addr)?;
+    let contract_addr = deps.api.addr_humanize(&classicmoon_info.contract_addr)?;
+    let pools: [Asset; 2] = classicmoon_info.query_pools(&deps.querier, deps.api, contract_addr)?;
 
     let offer_pool: Asset;
     let ask_pool: Asset;
@@ -544,10 +562,10 @@ pub fn query_reverse_simulation(
     deps: Deps<TerraQuery>,
     ask_asset: Asset,
 ) -> Result<ReverseSimulationResponse, ContractError> {
-    let pair_info: ClassicmoonInfoRaw = CLASSICMOON_INFO.load(deps.storage)?;
+    let classicmoon_info: ClassicmoonInfoRaw = CLASSICMOON_INFO.load(deps.storage)?;
 
-    let contract_addr = deps.api.addr_humanize(&pair_info.contract_addr)?;
-    let pools: [Asset; 2] = pair_info.query_pools(&deps.querier, deps.api, contract_addr)?;
+    let contract_addr = deps.api.addr_humanize(&classicmoon_info.contract_addr)?;
+    let pools: [Asset; 2] = classicmoon_info.query_pools(&deps.querier, deps.api, contract_addr)?;
 
     let offer_pool: Asset;
     let ask_pool: Asset;

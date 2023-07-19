@@ -360,10 +360,10 @@ SwapClsmToLunc() {
 ######        CLASSICMOON Query         ######
 ##############################################
 
-GetPair() {
+GetClassicmoon() {
     echo "================================================="
-    echo "GetPair"
-    PARAM_1='{"pair": {}}'
+    echo "GetClassicmoon"
+    PARAM_1='{"classicmoon": {}}'
     printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$CLASSICMOON) "$PARAM_1" $NODECHAIN --output json
     sleep 3
     echo "End"
@@ -435,7 +435,7 @@ BatchTest() {
     # RemoveLiquidity
     SwapLuncToClsm
     SwapClsmToLunc
-    GetPair
+    GetClassicmoon
     GetPool
     SimulationClsmToLunc
     SimulationLuncToClsm

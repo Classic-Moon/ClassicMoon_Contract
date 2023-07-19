@@ -1,6 +1,6 @@
 // use crate::asset::{Asset, AssetInfo, ClassicmoonInfo};
 use crate::asset::{Asset, ClassicmoonInfo};
-use crate::pair::{QueryMsg as PairQueryMsg, ReverseSimulationResponse, SimulationResponse};
+use crate::classicmoon::{QueryMsg as ClassicmoonQueryMsg, ReverseSimulationResponse, SimulationResponse};
 
 use classic_bindings::TerraQuery;
 use cosmwasm_std::{
@@ -65,12 +65,12 @@ pub fn query_token_info(
 
 pub fn simulate(
     querier: &QuerierWrapper<TerraQuery>,
-    pair_contract: Addr,
+    classicmoon_contract: Addr,
     offer_asset: &Asset,
 ) -> StdResult<SimulationResponse> {
     querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-        contract_addr: pair_contract.to_string(),
-        msg: to_binary(&PairQueryMsg::Simulation {
+        contract_addr: classicmoon_contract.to_string(),
+        msg: to_binary(&ClassicmoonQueryMsg::Simulation {
             offer_asset: offer_asset.clone(),
         })?,
     }))
@@ -78,25 +78,25 @@ pub fn simulate(
 
 pub fn reverse_simulate(
     querier: &QuerierWrapper<TerraQuery>,
-    pair_contract: Addr,
+    classicmoon_contract: Addr,
     ask_asset: &Asset,
 ) -> StdResult<ReverseSimulationResponse> {
     querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-        contract_addr: pair_contract.to_string(),
-        msg: to_binary(&PairQueryMsg::ReverseSimulation {
+        contract_addr: classicmoon_contract.to_string(),
+        msg: to_binary(&ClassicmoonQueryMsg::ReverseSimulation {
             ask_asset: ask_asset.clone(),
         })?,
     }))
 }
 
-pub fn query_pair_info_from_pair(
+pub fn query_classicmoon_info_from_classicmoon(
     querier: &QuerierWrapper<TerraQuery>,
-    pair_contract: Addr,
+    classicmoon_contract: Addr,
 ) -> StdResult<ClassicmoonInfo> {
-    let pair_info: ClassicmoonInfo = querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-        contract_addr: pair_contract.to_string(),
-        msg: to_binary(&PairQueryMsg::Pair {})?,
+    let classicmoon_info: ClassicmoonInfo = querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
+        contract_addr: classicmoon_contract.to_string(),
+        msg: to_binary(&ClassicmoonQueryMsg::Classicmoon {})?,
     }))?;
 
-    Ok(pair_info)
+    Ok(classicmoon_info)
 }

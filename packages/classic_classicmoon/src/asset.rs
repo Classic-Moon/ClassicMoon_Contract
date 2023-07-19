@@ -280,6 +280,8 @@ pub struct ClassicmoonInfo {
     pub asset_infos: [AssetInfo; 2],
     pub contract_addr: String,
     pub liquidity_k_value: Uint128,
+    pub vesting_epoch: u8,
+    pub autoburn_epoch: u32,
     pub asset_decimals: [u8; 2],
 }
 
@@ -288,6 +290,8 @@ pub struct ClassicmoonInfoRaw {
     pub asset_infos: [AssetInfoRaw; 2],
     pub contract_addr: CanonicalAddr,
     pub liquidity_k_value: Uint128,
+    pub vesting_epoch: u8,
+    pub autoburn_epoch: u32,
     pub asset_decimals: [u8; 2],
 }
 
@@ -296,6 +300,8 @@ impl ClassicmoonInfoRaw {
         Ok(ClassicmoonInfo {
             liquidity_k_value: self.liquidity_k_value,
             contract_addr: api.addr_humanize(&self.contract_addr)?.to_string(),
+            vesting_epoch: self.vesting_epoch,
+            autoburn_epoch: self.autoburn_epoch,
             asset_infos: [
                 self.asset_infos[0].to_normal(api)?,
                 self.asset_infos[1].to_normal(api)?,
