@@ -165,7 +165,7 @@ fn provide_liquidity() {
                 amount: Uint128::from(1u128),
             },
         ],
-        receiver: None,
+        // receiver: None,
         deadline: None,
         slippage_tolerance: None,
     };
@@ -207,7 +207,7 @@ fn provide_liquidity() {
                 amount: Uint128::from(1_100u128),
             },
         ],
-        receiver: None,
+        // receiver: None,
         deadline: None,
         slippage_tolerance: None,
     };
@@ -301,7 +301,7 @@ fn provide_liquidity() {
                 amount: Uint128::from(200u128),
             },
         ],
-        receiver: Some("staking0000".to_string()), // try changing receiver
+        // receiver: Some("staking0000".to_string()), // try changing receiver
         deadline: None,
         slippage_tolerance: Some(Decimal::from_str("0.005").unwrap()),
     };
@@ -358,7 +358,7 @@ fn provide_liquidity() {
                 amount: Uint128::from(100u128),
             },
         ],
-        receiver: Some("staking0000".to_string()), // try changing receiver
+        // receiver: Some("staking0000".to_string()), // try changing receiver
         deadline: None,
         slippage_tolerance: Some(Decimal::from_str("0.05").unwrap()),
     };
@@ -418,7 +418,7 @@ fn provide_liquidity() {
                 amount: Uint128::from(50u128),
             },
         ],
-        receiver: None,
+        // receiver: None,
         deadline: None,
         slippage_tolerance: Some(Decimal::from_str("0.005").unwrap()),
     };
@@ -476,7 +476,7 @@ fn provide_liquidity() {
                 amount: Uint128::from(98u128),
             },
         ],
-        receiver: None,
+        // receiver: None,
         deadline: None,
         slippage_tolerance: Some(Decimal::from_str("0.05").unwrap()),
     };

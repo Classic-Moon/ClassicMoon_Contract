@@ -1,4 +1,5 @@
-use crate::asset::{Asset, AssetInfo, AssetInfoRaw, AssetRaw, PairInfo};
+// use crate::asset::{Asset, AssetInfo, AssetInfoRaw, AssetRaw, PairInfo};
+use crate::asset::{Asset, AssetInfo, AssetInfoRaw, AssetRaw};
 use crate::mock_querier::mock_dependencies;
 use crate::querier::{
     query_all_balances, query_balance, query_token_balance, query_token_info,

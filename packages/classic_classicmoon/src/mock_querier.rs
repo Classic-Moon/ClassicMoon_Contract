@@ -13,7 +13,7 @@ use crate::pair::{ReverseSimulationResponse, SimulationResponse};
 use classic_bindings::{SwapResponse, TaxCapResponse, TaxRateResponse, TerraQuery};
 use cw20::{BalanceResponse as Cw20BalanceResponse, Cw20QueryMsg, TokenInfoResponse};
 
-use std::iter::FromIterator;
+// use std::iter::FromIterator;
 
 /// mock_dependencies is a drop-in replacement for cosmwasm_std::testing::mock_dependencies
 /// this uses our CustomQuerier.
@@ -93,39 +93,40 @@ pub(crate) fn caps_to_map(caps: &[(&String, &Uint128)]) -> HashMap<String, Uint1
 
 #[derive(Clone, Default)]
 pub struct ClassicmoonswapFactoryQuerier {
-    pairs: HashMap<String, PairInfo>,
-    native_token_decimals: HashMap<String, u8>,
+    // pairs: HashMap<String, PairInfo>,
+    // native_token_decimals: HashMap<String, u8>,
 }
 
 impl ClassicmoonswapFactoryQuerier {
-    pub fn new(pairs: &[(&String, &PairInfo)], native_token_decimals: &[(String, u8)]) -> Self {
+    // pub fn new(pairs: &[(&String, &PairInfo)], native_token_decimals: &[(String, u8)]) -> Self {
+    pub fn new(/*pairs: &[(&String, &PairInfo)], native_token_decimals: &[(String, u8)]*/) -> Self {
         ClassicmoonswapFactoryQuerier {
-            pairs: pairs_to_map(pairs),
-            native_token_decimals: native_token_decimals_to_map(native_token_decimals),
+            // pairs: pairs_to_map(pairs),
+            // native_token_decimals: native_token_decimals_to_map(native_token_decimals),
         }
     }
 }
 
-pub(crate) fn pairs_to_map(pairs: &[(&String, &PairInfo)]) -> HashMap<String, PairInfo> {
-    let mut pairs_map: HashMap<String, PairInfo> = HashMap::new();
-    for (key, pair) in pairs.iter() {
-        let mut sort_key: Vec<char> = key.chars().collect();
-        sort_key.sort_by(|a, b| b.cmp(a));
-        pairs_map.insert(String::from_iter(sort_key.iter()), (**pair).clone());
-    }
-    pairs_map
-}
+// pub(crate) fn pairs_to_map(pairs: &[(&String, &PairInfo)]) -> HashMap<String, PairInfo> {
+//     let mut pairs_map: HashMap<String, PairInfo> = HashMap::new();
+//     for (key, pair) in pairs.iter() {
+//         let mut sort_key: Vec<char> = key.chars().collect();
+//         sort_key.sort_by(|a, b| b.cmp(a));
+//         pairs_map.insert(String::from_iter(sort_key.iter()), (**pair).clone());
+//     }
+//     pairs_map
+// }
 
-pub(crate) fn native_token_decimals_to_map(
-    native_token_decimals: &[(String, u8)],
-) -> HashMap<String, u8> {
-    let mut native_token_decimals_map: HashMap<String, u8> = HashMap::new();
+// pub(crate) fn native_token_decimals_to_map(
+//     native_token_decimals: &[(String, u8)],
+// ) -> HashMap<String, u8> {
+//     let mut native_token_decimals_map: HashMap<String, u8> = HashMap::new();
 
-    for (denom, decimals) in native_token_decimals.iter() {
-        native_token_decimals_map.insert(denom.to_string(), *decimals);
-    }
-    native_token_decimals_map
-}
+//     for (denom, decimals) in native_token_decimals.iter() {
+//         native_token_decimals_map.insert(denom.to_string(), *decimals);
+//     }
+//     native_token_decimals_map
+// }
 
 impl Querier for WasmMockQuerier {
     fn raw_query(&self, bin_request: &[u8]) -> QuerierResult {
@@ -299,10 +300,10 @@ impl WasmMockQuerier {
     // configure the classicmoon pair
     pub fn with_classicmoon_factory(
         &mut self,
-        pairs: &[(&String, &PairInfo)],
-        native_token_decimals: &[(String, u8)],
+        // pairs: &[(&String, &PairInfo)],
+        // native_token_decimals: &[(String, u8)],
     ) {
-        self.classicmoon_factory_querier = ClassicmoonswapFactoryQuerier::new(pairs, native_token_decimals);
+        self.classicmoon_factory_querier = ClassicmoonswapFactoryQuerier::new(/*pairs, native_token_decimals*/);
     }
 
     pub fn with_balance(&mut self, balances: &[(&String, Vec<Coin>)]) {

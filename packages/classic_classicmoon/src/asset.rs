@@ -2,7 +2,8 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
-use crate::querier::{query_balance, query_token_balance, query_token_info};
+// use crate::querier::{query_balance, query_token_balance, query_token_info};
+use crate::querier::{query_balance, query_token_balance};
 use classic_bindings::{TerraMsg, TerraQuerier, TerraQuery};
 use cosmwasm_std::{
     to_binary, Addr, Api, BankMsg, CanonicalAddr, Coin, CosmosMsg, Decimal, MessageInfo,

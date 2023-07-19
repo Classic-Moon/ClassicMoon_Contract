@@ -6,7 +6,7 @@ PARAM_2=$4
 PARAM_3=$5
 ADDR_PRISM="terra1675g95dpcxulmwgyc0hvf66uxn7vcrr5az2vuk"
 ADDR_PRISM2="terra1tvlszuvjud7ckguglcmzdyh8wx9g0wy5ujhy0h"
-ADDR_LP="terra1c46yg4qqf73hw8u2e9m4nm3hadpv02ahvpt2hl2avzkyrlk3ezwqxsvvu6"
+ADDR_LP="terra1ucyqtslfvcj8vk8txdgv580ml4w2zv3kutc59naetpsquhj4sgqqf0m785"
 
 case $NETWORK in
  devnet)
@@ -37,6 +37,7 @@ NODE="https://terra-classic-rpc.publicnode.com:443"
  DENOM=uluna
  CHAIN_ID=columbus-5
  WALLET="--from prism"
+ WALLET2="--from prism2"
  ADDR_ADMIN=$ADDR_PRISM
  GAS=0.001
  ;; 
@@ -247,21 +248,39 @@ Balances() {
 ##################   Token   ##################
 ##############################################
 
-TokenMint() {
+TokenMintByPrism() {
     echo "================================================="
     echo "Mint"
-    PARAM_1='{"mint": {"recipient": "'$ADDR_PRISM2'", "amount": "1000000000000" }}'
+    PARAM_1='{"mint": {"recipient": "'$ADDR_PRISM'", "amount": "1000000000000" }}'
     echo "terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET $TXFLAG"
     printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET $TXFLAG
     sleep 5
 }
 
-UpdateMinter() {
+UpdateMinterAsPrism2() {
     echo "================================================="
     echo "UpdateMinter"
     PARAM_1='{"update_minter": {"new_minter": "'$ADDR_PRISM2'" }}'
     echo "terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET $TXFLAG"
     printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET $TXFLAG
+    sleep 5
+}
+
+TokenMintByPrism2() {
+    echo "================================================="
+    echo "Mint"
+    PARAM_1='{"mint": {"recipient": "'$ADDR_PRISM2'", "amount": "1000000000000" }}'
+    echo "terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET2 $TXFLAG"
+    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET2 $TXFLAG
+    sleep 5
+}
+
+UpdateMinterAsPrism() {
+    echo "================================================="
+    echo "UpdateMinter"
+    PARAM_1='{"update_minter": {"new_minter": "'$ADDR_PRISM'" }}'
+    echo "terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET2 $TXFLAG"
+    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET2 $TXFLAG
     sleep 5
 }
 
@@ -401,20 +420,24 @@ ReverseSimulationClsmFromLunc() {
 }
 
 #################################### End of Function ###################################################
-if [[ $FUNCTION == "" ]]; then
-    # 1 Run First Part
-    # BatchUpload
-    # BatchInstantiate
+BatchUploadAndInstantiate() {
+    BatchUpload
+    BatchInstantiate
+}
 
-    # 2 Replace ADDR_LP
-
-    # 3 Run Second Part
+BatchTest() {
     Balances
-    TokenMint
+
+    TokenMintByPrism
+    UpdateMinterAsPrism2
+    TokenMintByPrism2
+    UpdateMinterAsPrism
+    TokenMintByPrism
+
     IncreaseAllowance
     GetAllowance
     AddLiquidity
-    RemoveLiquidity
+    # RemoveLiquidity
     SwapLuncToClsm
     SwapClsmToLunc
     GetPair
@@ -424,6 +447,16 @@ if [[ $FUNCTION == "" ]]; then
     ReverseSimulationLuncFromClsm
     ReverseSimulationClsmFromLunc
     Balances
+}
+
+if [[ $FUNCTION == "" ]]; then
+    # 1 Run First Part
+    # BatchUploadAndInstantiate
+
+    # 2 Replace ADDR_LP
+
+    # 3 Run Second Part
+    BatchTest
 else
     $FUNCTION
 fi
