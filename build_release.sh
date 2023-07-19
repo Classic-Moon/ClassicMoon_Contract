@@ -6,7 +6,6 @@ PARAM_2=$4
 PARAM_3=$5
 ADDR_PRISM="terra1675g95dpcxulmwgyc0hvf66uxn7vcrr5az2vuk"
 ADDR_PRISM2="terra1tvlszuvjud7ckguglcmzdyh8wx9g0wy5ujhy0h"
-ADDR_LP="terra1ucyqtslfvcj8vk8txdgv580ml4w2zv3kutc59naetpsquhj4sgqqf0m785"
 
 case $NETWORK in
  devnet)
@@ -154,6 +153,8 @@ RemoveHistory() {
 }
 
 BatchUpload() {
+    echo "======================BatchUpload Start======================"
+    
     CATEGORY=$SWAP_TOKEN
     printf "y\n" | Upload
     sleep 3
@@ -161,6 +162,8 @@ BatchUpload() {
     CATEGORY=$SWAP_PAIR
     printf "y\n" | Upload
     sleep 3
+
+    echo "======================BatchUpload End======================"
 }
 
 Instantiate() {
@@ -186,17 +189,21 @@ Instantiate() {
 }
 
 BatchInstantiate() {
+    echo "======================BatchInstantiate Start======================"
+
     CATEGORY=$SWAP_TOKEN
     PARAM_1='{"name":"ClassicMoon Test", "symbol":"TCLSM", "decimals":6, "initial_balances":[{"address":"'$ADDR_ADMIN'", "amount":"6800000000000000000"}], "mint":{"minter":"'$ADDR_ADMIN'"}, "marketing":{"marketing":"'$ADDR_ADMIN'","logo":{"url":"https://classicmoon-frontend-2023.web.app/logo83.png"}}}'
     PARAM_2="TCLSM"
     printf "y\n" | Instantiate
-    sleep 5
+    sleep 3
 
     CATEGORY=$SWAP_PAIR
     PARAM_1='{"asset_infos":[{"token":{"contract_addr":"'$(cat $ADDRESS_DIR$SWAP_TOKEN)'"}}, {"native_token":{"denom":"uluna"}}], "token_code_id":'$(cat $CODE_DIR$SWAP_TOKEN)', "asset_decimals":[6, 6]}'
     PARAM_2="SwapPair"
     printf "y\n" | Instantiate
-    sleep 5
+    sleep 3
+
+    echo "======================BatchInstantiate End======================"
 }
 
 ##############################################
@@ -213,10 +220,6 @@ Balances() {
     printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$SWAP_TOKEN) '{"balance":{"address":"'$ADDR_PRISM'"}}' $NODECHAIN --output json
     sleep 3
 
-    echo prism LP balance
-    printf "y\n" | terrad query wasm contract-state smart $ADDR_LP '{"balance":{"address":"'$ADDR_PRISM'"}}' $NODECHAIN --output json
-    sleep 3
-
     ############### prism2 ###############
     echo prism2 lunc balance
     printf "y\n" | terrad query bank balances $ADDR_PRISM2 $NODECHAIN --output json
@@ -224,10 +227,6 @@ Balances() {
 
     echo prism2 CLSM balance
     printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$SWAP_TOKEN) '{"balance":{"address":"'$ADDR_PRISM2'"}}' $NODECHAIN --output json
-    sleep 3
-
-    echo prism2 LP balance
-    printf "y\n" | terrad query wasm contract-state smart $ADDR_LP '{"balance":{"address":"'$ADDR_PRISM2'"}}' $NODECHAIN --output json
     sleep 3
 
     ############### pair ###############
@@ -238,10 +237,6 @@ Balances() {
     echo pair CLSM balance
     printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$SWAP_TOKEN) '{"balance":{"address":"'$(cat $ADDRESS_DIR$SWAP_PAIR)'"}}' $NODECHAIN --output json
     sleep 3
-
-    echo pair LP balance
-    printf "y\n" | terrad query wasm contract-state smart $ADDR_LP '{"balance":{"address":"'$(cat $ADDRESS_DIR$SWAP_PAIR)'"}}' $NODECHAIN --output json
-    sleep 3
 }
 
 ##############################################
@@ -250,7 +245,7 @@ Balances() {
 
 TokenMintByPrism() {
     echo "================================================="
-    echo "Mint"
+    echo "TokenMintByPrism"
     PARAM_1='{"mint": {"recipient": "'$ADDR_PRISM'", "amount": "1000000000000" }}'
     echo "terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET $TXFLAG"
     printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET $TXFLAG
@@ -259,7 +254,7 @@ TokenMintByPrism() {
 
 UpdateMinterAsPrism2() {
     echo "================================================="
-    echo "UpdateMinter"
+    echo "UpdateMinterAsPrism2"
     PARAM_1='{"update_minter": {"new_minter": "'$ADDR_PRISM2'" }}'
     echo "terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET $TXFLAG"
     printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET $TXFLAG
@@ -268,7 +263,7 @@ UpdateMinterAsPrism2() {
 
 TokenMintByPrism2() {
     echo "================================================="
-    echo "Mint"
+    echo "TokenMintByPrism2"
     PARAM_1='{"mint": {"recipient": "'$ADDR_PRISM2'", "amount": "1000000000000" }}'
     echo "terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET2 $TXFLAG"
     printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET2 $TXFLAG
@@ -277,7 +272,7 @@ TokenMintByPrism2() {
 
 UpdateMinterAsPrism() {
     echo "================================================="
-    echo "UpdateMinter"
+    echo "UpdateMinterAsPrism"
     PARAM_1='{"update_minter": {"new_minter": "'$ADDR_PRISM'" }}'
     echo "terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET2 $TXFLAG"
     printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET2 $TXFLAG
@@ -295,7 +290,7 @@ IncreaseAllowance() {
 
 TokenTransfer () {
     echo "================================================="
-    echo "Start Transfer"
+    echo "Start TokenTransfer"
     PARAM_1='{"transfer": {"recipient": "'$ADDR_PRISM2'", "amount": "1000000000" }}'
     PARAM_2='TCLSM'
     echo "terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET $TXFLAG"
@@ -333,8 +328,8 @@ RemoveLiquidity() {
     MSG='{"withdraw_liquidity": {}}'
     ENCODEDMSG=$(echo $MSG | base64 -w 0)
     PARAM_1='{"send": {"contract": "'$(cat $ADDRESS_DIR$SWAP_PAIR)'", "amount": "50000", "msg": "'$ENCODEDMSG'" }}'
-    echo "terrad tx wasm execute $ADDR_LP "$PARAM_1" $WALLET $TXFLAG"
-    printf "y\n" | terrad tx wasm execute $ADDR_LP "$PARAM_1" $WALLET $TXFLAG
+    # echo "terrad tx wasm execute $ADDR_LP "$PARAM_1" $WALLET $TXFLAG"
+    # printf "y\n" | terrad tx wasm execute $ADDR_LP "$PARAM_1" $WALLET $TXFLAG
     sleep 5
     echo "End"
 }
@@ -450,12 +445,7 @@ BatchTest() {
 }
 
 if [[ $FUNCTION == "" ]]; then
-    # 1 Run First Part
-    # BatchUploadAndInstantiate
-
-    # 2 Replace ADDR_LP
-
-    # 3 Run Second Part
+    BatchUploadAndInstantiate
     BatchTest
 else
     $FUNCTION

@@ -1,6 +1,6 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cosmwasm_std::{Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult};
+use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult};
 
 use cw2::set_contract_version;
 use cw20_base::{
@@ -41,8 +41,7 @@ pub fn instantiate(
     let mint = match msg.mint {
         Some(m) => {
             Some(MinterData {
-                //TODO: minter: deps.api.addr_validate(&m.minter)?,
-                minter: Addr::unchecked(m.minter),
+                minter: deps.api.addr_validate(&m.minter).unwrap(),
                 cap: m.cap,
             })
         }

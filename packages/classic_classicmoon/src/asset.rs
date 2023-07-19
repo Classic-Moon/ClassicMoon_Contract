@@ -168,15 +168,14 @@ impl AssetInfo {
     pub fn query_pool(
         &self,
         querier: &QuerierWrapper<TerraQuery>,
-        _api: &dyn Api, // TODO
+        api: &dyn Api,
         pool_addr: Addr,
     ) -> StdResult<Uint128> {
         match self {
             AssetInfo::Token { contract_addr, .. } => {
                 query_token_balance(
                     querier,
-                    Addr::unchecked(contract_addr),
-                    //TODO: api.addr_validate(contract_addr.as_str())?,
+                    api.addr_validate(&contract_addr).unwrap(),
                     pool_addr,
                 )
             }
@@ -280,7 +279,7 @@ impl AssetInfoRaw {
 pub struct PairInfo {
     pub asset_infos: [AssetInfo; 2],
     pub contract_addr: String,
-    pub liquidity_token: String,
+    pub liquidity_k_value: Uint128,
     pub asset_decimals: [u8; 2],
 }
 
@@ -288,14 +287,14 @@ pub struct PairInfo {
 pub struct PairInfoRaw {
     pub asset_infos: [AssetInfoRaw; 2],
     pub contract_addr: CanonicalAddr,
-    pub liquidity_token: CanonicalAddr,
+    pub liquidity_k_value: Uint128,
     pub asset_decimals: [u8; 2],
 }
 
 impl PairInfoRaw {
     pub fn to_normal(&self, api: &dyn Api) -> StdResult<PairInfo> {
         Ok(PairInfo {
-            liquidity_token: api.addr_humanize(&self.liquidity_token)?.to_string(),
+            liquidity_k_value: self.liquidity_k_value,
             contract_addr: api.addr_humanize(&self.contract_addr)?.to_string(),
             asset_infos: [
                 self.asset_infos[0].to_normal(api)?,

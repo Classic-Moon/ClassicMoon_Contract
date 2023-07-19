@@ -1,13 +1,12 @@
 use crate::error::ContractError;
-use crate::response::MsgInstantiateContractResponse;
 use crate::state::PAIR_INFO;
 
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 
 use cosmwasm_std::{
-    from_binary, to_binary, Addr, Binary, CanonicalAddr, CosmosMsg, Decimal, Decimal256, Deps,
-    DepsMut, Env, MessageInfo, Reply, ReplyOn, Response, StdError, StdResult, SubMsg, Uint128,
+    from_binary, to_binary, Addr, Binary, CosmosMsg, Decimal, Decimal256, Deps,
+    DepsMut, Env, MessageInfo, Response, StdResult, Uint128,
     Uint256, WasmMsg,
 };
 
@@ -18,12 +17,9 @@ use classic_classicmoon::pair::{
     Cw20HookMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, PoolResponse, QueryMsg,
     ReverseSimulationResponse, SimulationResponse,
 };
-use classic_classicmoon::querier::query_token_info;
-use classic_classicmoon::token::InstantiateMsg as TokenInstantiateMsg;
 use classic_classicmoon::util::{assert_deadline, migrate_version};
 use cw2::set_contract_version;
-use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg, MinterResponse};
-use protobuf::Message;
+use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg};
 use std::cmp::Ordering;
 use std::convert::TryInto;
 use std::ops::Mul;
@@ -31,8 +27,6 @@ use std::ops::Mul;
 // version info for migration info
 const CONTRACT_NAME: &str = "crates.io:classicmoon-pair";
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-
-const INSTANTIATE_REPLY_ID: u64 = 1;
 
 /// Commission rate == 0.2%
 const COMMISSION_RATE: u64 = 2;
@@ -48,7 +42,7 @@ pub fn instantiate(
 
     let pair_info: &PairInfoRaw = &PairInfoRaw {
         contract_addr: deps.api.addr_canonicalize(env.contract.address.as_str())?,
-        liquidity_token: CanonicalAddr::from(vec![]),
+        liquidity_k_value: Uint128::zero(),
         asset_infos: [
             msg.asset_infos[0].to_raw(deps.api)?,
             msg.asset_infos[1].to_raw(deps.api)?,
@@ -58,29 +52,7 @@ pub fn instantiate(
 
     PAIR_INFO.save(deps.storage, pair_info)?;
 
-    Ok(Response::new().add_submessage(SubMsg {
-        // Create LP token
-        msg: WasmMsg::Instantiate {
-            admin: None,
-            code_id: msg.token_code_id,
-            msg: to_binary(&TokenInstantiateMsg {
-                name: "classicmoon liquidity token".to_string(),
-                symbol: "uLP".to_string(),
-                decimals: 6,
-                initial_balances: vec![],
-                mint: Some(MinterResponse {
-                    minter: env.contract.address.to_string(),
-                    cap: None,
-                }),
-            })?,
-            funds: vec![],
-            label: "lp".to_string(),
-        }
-        .into(),
-        gas_limit: None,
-        id: INSTANTIATE_REPLY_ID,
-        reply_on: ReplyOn::Success,
-    }))
+    Ok(Response::default())
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -118,8 +90,7 @@ pub fn execute(
             }
 
             let to_addr = if let Some(to_addr) = to {
-                Some(Addr::unchecked(to_addr))
-                //TODO: Some(deps.api.addr_validate(&to_addr)?)
+                Some(deps.api.addr_validate(&to_addr).unwrap())
             } else {
                 None
             };
@@ -172,8 +143,7 @@ pub fn receive_cw20(
             }
 
             let to_addr = if let Some(to_addr) = to {
-                Some(Addr::unchecked(to_addr))
-                //TODO: Some(deps.api.addr_validate(to_addr.as_str())?)
+                Some(deps.api.addr_validate(&to_addr).unwrap())
             } else {
                 None
             };
@@ -199,12 +169,8 @@ pub fn receive_cw20(
             min_assets,
             deadline,
         }) => {
-            // let config: PairInfoRaw = PAIR_INFO.load(deps.storage)?;
-            // if deps.api.addr_canonicalize(info.sender.as_str())? != config.liquidity_token {
-            //     return Err(ContractError::Unauthorized {});
-            // }
-            let sender_addr = Addr::unchecked(cw20_msg.sender);
-            //TODO: let sender_addr = deps.api.addr_validate(cw20_msg.sender.as_str())?;
+            let sender_addr = deps.api.addr_validate(&cw20_msg.sender).unwrap();
+
             withdraw_liquidity(
                 deps,
                 env,
@@ -217,29 +183,6 @@ pub fn receive_cw20(
         }
         Err(err) => Err(ContractError::Std(err)),
     }
-}
-
-/// This just stores the result for future query
-#[cfg_attr(not(feature = "library"), entry_point)]
-pub fn reply(deps: DepsMut<TerraQuery>, _env: Env, msg: Reply) -> StdResult<Response<TerraMsg>> {
-    if msg.id != INSTANTIATE_REPLY_ID {
-        return Err(StdError::generic_err("invalid reply msg"));
-    }
-
-    let data = msg.result.unwrap().data.unwrap();
-    let res: MsgInstantiateContractResponse =
-        Message::parse_from_bytes(data.as_slice()).map_err(|_| {
-            StdError::parse_err("MsgInstantiateContractResponse", "failed to parse data")
-        })?;
-    let liquidity_token = res.get_contract_address();
-
-    let api = deps.api;
-    PAIR_INFO.update(deps.storage, |mut meta| -> StdResult<_> {
-        meta.liquidity_token = api.addr_canonicalize(liquidity_token)?;
-        Ok(meta)
-    })?;
-
-    Ok(Response::new().add_attribute("liquidity_token_addr", liquidity_token))
 }
 
 /// CONTRACT - should approve contract to use the amount of token
@@ -283,8 +226,7 @@ pub fn provide_liquidity(
         }
     }
 
-    let liquidity_token = deps.api.addr_humanize(&pair_info.liquidity_token)?;
-    let total_share = query_token_info(&deps.querier, liquidity_token)?.total_supply;
+    let total_share = pair_info.liquidity_k_value;
     let share = if total_share.is_zero() {
         // Initial share = collateral amount
         let deposit0: Uint256 = deposits[0].into();
@@ -366,18 +308,10 @@ pub fn provide_liquidity(
         }
     }
 
-    // mint LP token to contract
-    messages.push(CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: deps
-            .api
-            .addr_humanize(&pair_info.liquidity_token)?
-            .to_string(),
-        msg: to_binary(&Cw20ExecuteMsg::Mint {
-            recipient: env.contract.address.to_string(),
-            amount: share,
-        })?,
-        funds: vec![],
-    }));
+    PAIR_INFO.update(deps.storage, |mut meta| -> StdResult<_> {
+        meta.liquidity_k_value += share;
+        Ok(meta)
+    })?;
 
     Ok(Response::new().add_messages(messages).add_attributes(vec![
         ("action", "provide_liquidity"),
@@ -404,10 +338,9 @@ pub fn withdraw_liquidity(
     assert_deadline(env.block.time.seconds(), deadline)?;
 
     let pair_info: PairInfoRaw = PAIR_INFO.load(deps.storage)?;
-    let liquidity_addr: Addr = deps.api.addr_humanize(&pair_info.liquidity_token)?;
 
     let pools: [Asset; 2] = pair_info.query_pools(&deps.querier, deps.api, env.contract.address)?;
-    let total_share: Uint128 = query_token_info(&deps.querier, liquidity_addr)?.total_supply;
+    let total_share: Uint128 = pair_info.liquidity_k_value;
 
     let share_ratio: Decimal = Decimal::from_ratio(amount, total_share);
     let refund_assets: Vec<Asset> = pools
@@ -421,6 +354,11 @@ pub fn withdraw_liquidity(
     assert_minimum_assets(refund_assets.to_vec(), min_assets)?;
 
     // update pool info
+    PAIR_INFO.update(deps.storage, |mut meta| -> StdResult<_> {
+        meta.liquidity_k_value = meta.liquidity_k_value.checked_sub(amount)?;
+        Ok(meta)
+    })?;
+
     Ok(Response::new()
         .add_messages(vec![
             refund_assets[0]
@@ -429,15 +367,6 @@ pub fn withdraw_liquidity(
             refund_assets[1]
                 .clone()
                 .into_msg(&deps.querier, sender.clone())?,
-            // burn liquidity token
-            CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: deps
-                    .api
-                    .addr_humanize(&pair_info.liquidity_token)?
-                    .to_string(),
-                msg: to_binary(&Cw20ExecuteMsg::Burn { amount })?,
-                funds: vec![],
-            }),
         ])
         .add_attributes(vec![
             ("action", "withdraw_liquidity"),
@@ -570,11 +499,7 @@ pub fn query_pool(deps: Deps<TerraQuery>) -> Result<PoolResponse, ContractError>
     let pair_info: PairInfoRaw = PAIR_INFO.load(deps.storage)?;
     let contract_addr = deps.api.addr_humanize(&pair_info.contract_addr)?;
     let assets: [Asset; 2] = pair_info.query_pools(&deps.querier, deps.api, contract_addr)?;
-    let total_share: Uint128 = query_token_info(
-        &deps.querier,
-        deps.api.addr_humanize(&pair_info.liquidity_token)?,
-    )?
-    .total_supply;
+    let total_share: Uint128 = pair_info.liquidity_k_value;
 
     let resp = PoolResponse {
         assets,
