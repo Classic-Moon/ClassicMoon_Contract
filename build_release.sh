@@ -58,8 +58,8 @@ LIBRARY_DIR="libraries/"
 [ ! -d $CODE_DIR ] &&mkdir $CODE_DIR
 [ ! -d $ADDRESS_DIR ] &&mkdir $ADDRESS_DIR
 
-SWAP_PAIR="classicmoon_pair"
-SWAP_TOKEN="classicmoon_token"
+CLASSICMOON="classicmoon"
+CLASSICMOON_TOKEN="classicmoon_token"
 
 ##############################################
 ### ENV, Build, Upload, Instantiate, Clean ###
@@ -155,11 +155,11 @@ RemoveHistory() {
 BatchUpload() {
     echo "======================BatchUpload Start======================"
     
-    CATEGORY=$SWAP_TOKEN
+    CATEGORY=$CLASSICMOON_TOKEN
     printf "y\n" | Upload
     sleep 3
     
-    CATEGORY=$SWAP_PAIR
+    CATEGORY=$CLASSICMOON
     printf "y\n" | Upload
     sleep 3
 
@@ -191,15 +191,15 @@ Instantiate() {
 BatchInstantiate() {
     echo "======================BatchInstantiate Start======================"
 
-    CATEGORY=$SWAP_TOKEN
+    CATEGORY=$CLASSICMOON_TOKEN
     PARAM_1='{"name":"ClassicMoon Test", "symbol":"TCLSM", "decimals":6, "initial_balances":[{"address":"'$ADDR_ADMIN'", "amount":"6800000000000000000"}], "mint":{"minter":"'$ADDR_ADMIN'"}, "marketing":{"marketing":"'$ADDR_ADMIN'","logo":{"url":"https://classicmoon-frontend-2023.web.app/logo83.png"}}}'
     PARAM_2="TCLSM"
     printf "y\n" | Instantiate
     sleep 3
 
-    CATEGORY=$SWAP_PAIR
-    PARAM_1='{"asset_infos":[{"token":{"contract_addr":"'$(cat $ADDRESS_DIR$SWAP_TOKEN)'"}}, {"native_token":{"denom":"uluna"}}], "token_code_id":'$(cat $CODE_DIR$SWAP_TOKEN)', "asset_decimals":[6, 6]}'
-    PARAM_2="SwapPair"
+    CATEGORY=$CLASSICMOON
+    PARAM_1='{"asset_infos":[{"token":{"contract_addr":"'$(cat $ADDRESS_DIR$CLASSICMOON_TOKEN)'"}}, {"native_token":{"denom":"uluna"}}], "token_code_id":'$(cat $CODE_DIR$CLASSICMOON_TOKEN)', "asset_decimals":[6, 6]}'
+    PARAM_2="ClassicMoon"
     printf "y\n" | Instantiate
     sleep 3
 
@@ -217,7 +217,7 @@ Balances() {
     sleep 3
 
     echo prism CLSM balance
-    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$SWAP_TOKEN) '{"balance":{"address":"'$ADDR_PRISM'"}}' $NODECHAIN --output json
+    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$CLASSICMOON_TOKEN) '{"balance":{"address":"'$ADDR_PRISM'"}}' $NODECHAIN --output json
     sleep 3
 
     ############### prism2 ###############
@@ -226,16 +226,16 @@ Balances() {
     sleep 3
 
     echo prism2 CLSM balance
-    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$SWAP_TOKEN) '{"balance":{"address":"'$ADDR_PRISM2'"}}' $NODECHAIN --output json
+    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$CLASSICMOON_TOKEN) '{"balance":{"address":"'$ADDR_PRISM2'"}}' $NODECHAIN --output json
     sleep 3
 
-    ############### pair ###############
-    echo pair lunc balance
-    printf "y\n" | terrad query bank balances $(cat $ADDRESS_DIR$SWAP_PAIR) $NODECHAIN --output json
+    ############### classicmoon ###############
+    echo classicmoon lunc balance
+    printf "y\n" | terrad query bank balances $(cat $ADDRESS_DIR$CLASSICMOON) $NODECHAIN --output json
     sleep 3
 
-    echo pair CLSM balance
-    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$SWAP_TOKEN) '{"balance":{"address":"'$(cat $ADDRESS_DIR$SWAP_PAIR)'"}}' $NODECHAIN --output json
+    echo classicmoon CLSM balance
+    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$CLASSICMOON_TOKEN) '{"balance":{"address":"'$(cat $ADDRESS_DIR$CLASSICMOON)'"}}' $NODECHAIN --output json
     sleep 3
 }
 
@@ -247,8 +247,8 @@ TokenMintByPrism() {
     echo "================================================="
     echo "TokenMintByPrism"
     PARAM_1='{"mint": {"recipient": "'$ADDR_PRISM'", "amount": "1000000000000" }}'
-    echo "terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET $TXFLAG"
-    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET $TXFLAG
+    echo "terrad tx wasm execute $(cat $ADDRESS_DIR$CLASSICMOON_TOKEN) "$PARAM_1" $WALLET $TXFLAG"
+    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$CLASSICMOON_TOKEN) "$PARAM_1" $WALLET $TXFLAG
     sleep 5
 }
 
@@ -256,8 +256,8 @@ UpdateMinterAsPrism2() {
     echo "================================================="
     echo "UpdateMinterAsPrism2"
     PARAM_1='{"update_minter": {"new_minter": "'$ADDR_PRISM2'" }}'
-    echo "terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET $TXFLAG"
-    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET $TXFLAG
+    echo "terrad tx wasm execute $(cat $ADDRESS_DIR$CLASSICMOON_TOKEN) "$PARAM_1" $WALLET $TXFLAG"
+    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$CLASSICMOON_TOKEN) "$PARAM_1" $WALLET $TXFLAG
     sleep 5
 }
 
@@ -265,8 +265,8 @@ TokenMintByPrism2() {
     echo "================================================="
     echo "TokenMintByPrism2"
     PARAM_1='{"mint": {"recipient": "'$ADDR_PRISM2'", "amount": "1000000000000" }}'
-    echo "terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET2 $TXFLAG"
-    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET2 $TXFLAG
+    echo "terrad tx wasm execute $(cat $ADDRESS_DIR$CLASSICMOON_TOKEN) "$PARAM_1" $WALLET2 $TXFLAG"
+    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$CLASSICMOON_TOKEN) "$PARAM_1" $WALLET2 $TXFLAG
     sleep 5
 }
 
@@ -274,16 +274,16 @@ UpdateMinterAsPrism() {
     echo "================================================="
     echo "UpdateMinterAsPrism"
     PARAM_1='{"update_minter": {"new_minter": "'$ADDR_PRISM'" }}'
-    echo "terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET2 $TXFLAG"
-    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET2 $TXFLAG
+    echo "terrad tx wasm execute $(cat $ADDRESS_DIR$CLASSICMOON_TOKEN) "$PARAM_1" $WALLET2 $TXFLAG"
+    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$CLASSICMOON_TOKEN) "$PARAM_1" $WALLET2 $TXFLAG
     sleep 5
 }
 
 IncreaseAllowance() {
     echo "================================================="
     echo "Increase Allowance"
-    PARAM_1='{"increase_allowance": {"spender": "'$(cat $ADDRESS_DIR$SWAP_PAIR)'", "amount": "100000000000", "expires": {"never": {}}}}'
-    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET $TXFLAG
+    PARAM_1='{"increase_allowance": {"spender": "'$(cat $ADDRESS_DIR$CLASSICMOON)'", "amount": "100000000000", "expires": {"never": {}}}}'
+    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$CLASSICMOON_TOKEN) "$PARAM_1" $WALLET $TXFLAG
     sleep 5
     echo "End"
 }
@@ -293,8 +293,8 @@ TokenTransfer () {
     echo "Start TokenTransfer"
     PARAM_1='{"transfer": {"recipient": "'$ADDR_PRISM2'", "amount": "1000000000" }}'
     PARAM_2='TCLSM'
-    echo "terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET $TXFLAG"
-    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET $TXFLAG
+    echo "terrad tx wasm execute $(cat $ADDRESS_DIR$CLASSICMOON_TOKEN) "$PARAM_1" $WALLET $TXFLAG"
+    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$CLASSICMOON_TOKEN) "$PARAM_1" $WALLET $TXFLAG
     sleep 5
     echo "End"
 }
@@ -302,22 +302,22 @@ TokenTransfer () {
 GetAllowance() {
     echo "================================================="
     echo "Allowance"
-    PARAM_1='{"allowance": {"owner": "'$ADDR_ADMIN'", "spender": "'$(cat $ADDRESS_DIR$SWAP_PAIR)'"}}'
-    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $NODECHAIN --output json
+    PARAM_1='{"allowance": {"owner": "'$ADDR_ADMIN'", "spender": "'$(cat $ADDRESS_DIR$CLASSICMOON)'"}}'
+    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$CLASSICMOON_TOKEN) "$PARAM_1" $NODECHAIN --output json
     sleep 5
     echo "End"
 }
 
 ##############################################
-######           PAIR Execute           ######
+######        CLASSICMOON Execute       ######
 ##############################################
 
 AddLiquidity() {
     echo "================================================="
     echo "Start Add Liquidity"
-    PARAM_1='{"provide_liquidity": {"assets": [{"info": {"token":{"contract_addr":"'$(cat $ADDRESS_DIR$SWAP_TOKEN)'"}}, "amount": "100000000"}, {"info": {"native_token":{"denom":"uluna"}}, "amount": "1000000"}]}}'
-    echo "terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_PAIR) "$PARAM_1" --amount 1000000uluna $WALLET $TXFLAG"
-    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_PAIR) "$PARAM_1" --amount 1000000uluna $WALLET $TXFLAG
+    PARAM_1='{"provide_liquidity": {"assets": [{"info": {"token":{"contract_addr":"'$(cat $ADDRESS_DIR$CLASSICMOON_TOKEN)'"}}, "amount": "100000000"}, {"info": {"native_token":{"denom":"uluna"}}, "amount": "1000000"}]}}'
+    echo "terrad tx wasm execute $(cat $ADDRESS_DIR$CLASSICMOON) "$PARAM_1" --amount 1000000uluna $WALLET $TXFLAG"
+    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$CLASSICMOON) "$PARAM_1" --amount 1000000uluna $WALLET $TXFLAG
     sleep 5
     echo "End"
 }
@@ -327,7 +327,7 @@ RemoveLiquidity() {
     echo "Start Remove Liquidity"
     MSG='{"withdraw_liquidity": {}}'
     ENCODEDMSG=$(echo $MSG | base64 -w 0)
-    PARAM_1='{"send": {"contract": "'$(cat $ADDRESS_DIR$SWAP_PAIR)'", "amount": "50000", "msg": "'$ENCODEDMSG'" }}'
+    PARAM_1='{"send": {"contract": "'$(cat $ADDRESS_DIR$CLASSICMOON)'", "amount": "50000", "msg": "'$ENCODEDMSG'" }}'
     # echo "terrad tx wasm execute $ADDR_LP "$PARAM_1" $WALLET $TXFLAG"
     # printf "y\n" | terrad tx wasm execute $ADDR_LP "$PARAM_1" $WALLET $TXFLAG
     sleep 5
@@ -338,8 +338,8 @@ SwapLuncToClsm() {
     echo "================================================="
     echo "Start SwapLuncToClsm"
     PARAM_1='{"swap": {"offer_asset": {"info": {"native_token":{"denom":"uluna"}}, "amount": "100000"}}}'
-    echo "terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_PAIR) "$PARAM_1" --amount 100000uluna $WALLET $TXFLAG"
-    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_PAIR) "$PARAM_1" --amount 100000uluna $WALLET $TXFLAG
+    echo "terrad tx wasm execute $(cat $ADDRESS_DIR$CLASSICMOON) "$PARAM_1" --amount 100000uluna $WALLET $TXFLAG"
+    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$CLASSICMOON) "$PARAM_1" --amount 100000uluna $WALLET $TXFLAG
     sleep 5
     echo "End"
 }
@@ -349,31 +349,31 @@ SwapClsmToLunc() {
     echo "Start SwapClsmToLunc"
     MSG='{"swap": {}}'
     ENCODEDMSG=$(echo $MSG | base64 -w 0)
-    PARAM_1='{"send": {"contract": "'$(cat $ADDRESS_DIR$SWAP_PAIR)'", "amount": "10000000", "msg": "'$ENCODEDMSG'" }}'
-    echo "terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET $TXFLAG"
-    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$SWAP_TOKEN) "$PARAM_1" $WALLET $TXFLAG
+    PARAM_1='{"send": {"contract": "'$(cat $ADDRESS_DIR$CLASSICMOON)'", "amount": "10000000", "msg": "'$ENCODEDMSG'" }}'
+    echo "terrad tx wasm execute $(cat $ADDRESS_DIR$CLASSICMOON_TOKEN) "$PARAM_1" $WALLET $TXFLAG"
+    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$CLASSICMOON_TOKEN) "$PARAM_1" $WALLET $TXFLAG
     sleep 5
     echo "End"
 }
 
 ##############################################
-######            PAIR Query            ######
+######        CLASSICMOON Query         ######
 ##############################################
 
 GetPair() {
     echo "================================================="
-    echo "Pair"
+    echo "GetPair"
     PARAM_1='{"pair": {}}'
-    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$SWAP_PAIR) "$PARAM_1" $NODECHAIN --output json
+    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$CLASSICMOON) "$PARAM_1" $NODECHAIN --output json
     sleep 3
     echo "End"
 }
 
 GetPool() {
     echo "================================================="
-    echo "Pool"
+    echo "GetPool"
     PARAM_1='{"pool": {}}'
-    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$SWAP_PAIR) "$PARAM_1" $NODECHAIN --output json
+    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$CLASSICMOON) "$PARAM_1" $NODECHAIN --output json
     sleep 3
     echo "End"
 }
@@ -381,8 +381,8 @@ GetPool() {
 SimulationClsmToLunc() {
     echo "================================================="
     echo "SimulationClsmToLunc"
-    PARAM_1='{"simulation": {"offer_asset": {"info": {"token":{"contract_addr":"'$(cat $ADDRESS_DIR$SWAP_TOKEN)'"}}, "amount": "10000000"}}}'
-    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$SWAP_PAIR) "$PARAM_1" $NODECHAIN --output json
+    PARAM_1='{"simulation": {"offer_asset": {"info": {"token":{"contract_addr":"'$(cat $ADDRESS_DIR$CLASSICMOON_TOKEN)'"}}, "amount": "10000000"}}}'
+    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$CLASSICMOON) "$PARAM_1" $NODECHAIN --output json
     sleep 3
     echo "End"
 }
@@ -391,7 +391,7 @@ SimulationLuncToClsm() {
     echo "================================================="
     echo "SimulationLuncToClsm"
     PARAM_1='{"simulation": {"offer_asset": {"info": {"native_token":{"denom":"uluna"}}, "amount": "100000"}}}'
-    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$SWAP_PAIR) "$PARAM_1" $NODECHAIN --output json
+    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$CLASSICMOON) "$PARAM_1" $NODECHAIN --output json
     sleep 3
     echo "End"
 }
@@ -400,7 +400,7 @@ ReverseSimulationLuncFromClsm() {
     echo "================================================="
     echo "ReverseSimulationLuncFromClsm"
     PARAM_1='{"reverse_simulation": {"ask_asset": {"info": {"native_token":{"denom":"uluna"}}, "amount": "100000"}}}'
-    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$SWAP_PAIR) "$PARAM_1" $NODECHAIN --output json
+    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$CLASSICMOON) "$PARAM_1" $NODECHAIN --output json
     sleep 5
     echo "End"
 }
@@ -408,8 +408,8 @@ ReverseSimulationLuncFromClsm() {
 ReverseSimulationClsmFromLunc() {
     echo "================================================="
     echo "ReverseSimulationClsmFromLunc"
-    PARAM_1='{"reverse_simulation": {"ask_asset": {"info": {"token":{"contract_addr":"'$(cat $ADDRESS_DIR$SWAP_TOKEN)'"}}, "amount": "10000000"}}}'
-    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$SWAP_PAIR) "$PARAM_1" $NODECHAIN --output json
+    PARAM_1='{"reverse_simulation": {"ask_asset": {"info": {"token":{"contract_addr":"'$(cat $ADDRESS_DIR$CLASSICMOON_TOKEN)'"}}, "amount": "10000000"}}}'
+    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$CLASSICMOON) "$PARAM_1" $NODECHAIN --output json
     sleep 5
     echo "End"
 }
@@ -454,10 +454,10 @@ fi
 ##################################################
 # 1. Upload
 #    - Token 
-#    - Pair
+#    - ClassicMoon
 #
 # 2. Instantiate
 #    - Token
-#    - Pair
+#    - ClassicMoon
 #
 ##################################################

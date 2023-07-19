@@ -1,9 +1,9 @@
 [package]
-name = "classicmoon-pair"
+name = "classicmoon"
 version = "0.2.0"
 authors = ["ClassicMoon"]
 edition = "2021"
-description = "A Classicmoon pair contract"
+description = "A Classicmoon contract"
 license = "MIT"
 
 exclude = [

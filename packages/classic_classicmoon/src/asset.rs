@@ -276,7 +276,7 @@ impl AssetInfoRaw {
 
 // We define a custom struct for each query response
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-pub struct PairInfo {
+pub struct ClassicmoonInfo {
     pub asset_infos: [AssetInfo; 2],
     pub contract_addr: String,
     pub liquidity_k_value: Uint128,
@@ -284,16 +284,16 @@ pub struct PairInfo {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-pub struct PairInfoRaw {
+pub struct ClassicmoonInfoRaw {
     pub asset_infos: [AssetInfoRaw; 2],
     pub contract_addr: CanonicalAddr,
     pub liquidity_k_value: Uint128,
     pub asset_decimals: [u8; 2],
 }
 
-impl PairInfoRaw {
-    pub fn to_normal(&self, api: &dyn Api) -> StdResult<PairInfo> {
-        Ok(PairInfo {
+impl ClassicmoonInfoRaw {
+    pub fn to_normal(&self, api: &dyn Api) -> StdResult<ClassicmoonInfo> {
+        Ok(ClassicmoonInfo {
             liquidity_k_value: self.liquidity_k_value,
             contract_addr: api.addr_humanize(&self.contract_addr)?.to_string(),
             asset_infos: [

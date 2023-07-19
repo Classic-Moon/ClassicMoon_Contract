@@ -1,5 +1,5 @@
 use crate::error::ContractError;
-use crate::state::PAIR_INFO;
+use crate::state::CLASSICMOON_INFO;
 
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
@@ -12,7 +12,7 @@ use cosmwasm_std::{
 
 use classic_bindings::{TerraMsg, TerraQuery};
 
-use classic_classicmoon::asset::{Asset, AssetInfo, PairInfo, PairInfoRaw};
+use classic_classicmoon::asset::{Asset, AssetInfo, ClassicmoonInfo, ClassicmoonInfoRaw};
 use classic_classicmoon::pair::{
     Cw20HookMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, PoolResponse, QueryMsg,
     ReverseSimulationResponse, SimulationResponse,
@@ -40,7 +40,7 @@ pub fn instantiate(
 ) -> StdResult<Response<TerraMsg>> {
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
 
-    let pair_info: &PairInfoRaw = &PairInfoRaw {
+    let pair_info: &ClassicmoonInfoRaw = &ClassicmoonInfoRaw {
         contract_addr: deps.api.addr_canonicalize(env.contract.address.as_str())?,
         liquidity_k_value: Uint128::zero(),
         asset_infos: [
@@ -50,7 +50,7 @@ pub fn instantiate(
         asset_decimals: msg.asset_decimals,
     };
 
-    PAIR_INFO.save(deps.storage, pair_info)?;
+    CLASSICMOON_INFO.save(deps.storage, pair_info)?;
 
     Ok(Response::default())
 }
@@ -127,7 +127,7 @@ pub fn receive_cw20(
         }) => {
             // only asset contract can execute this message
             let mut authorized: bool = false;
-            let config: PairInfoRaw = PAIR_INFO.load(deps.storage)?;
+            let config: ClassicmoonInfoRaw = CLASSICMOON_INFO.load(deps.storage)?;
             let pools: [Asset; 2] =
                 config.query_pools(&deps.querier, deps.api, env.contract.address.clone())?;
             for pool in pools.iter() {
@@ -201,7 +201,7 @@ pub fn provide_liquidity(
         asset.assert_sent_native_token_balance(&info)?;
     }
 
-    let pair_info: PairInfoRaw = PAIR_INFO.load(deps.storage)?;
+    let pair_info: ClassicmoonInfoRaw = CLASSICMOON_INFO.load(deps.storage)?;
     let mut pools: [Asset; 2] =
         pair_info.query_pools(&deps.querier, deps.api, env.contract.address.clone())?;
     let deposits: [Uint128; 2] = [
@@ -308,7 +308,7 @@ pub fn provide_liquidity(
         }
     }
 
-    PAIR_INFO.update(deps.storage, |mut meta| -> StdResult<_> {
+    CLASSICMOON_INFO.update(deps.storage, |mut meta| -> StdResult<_> {
         meta.liquidity_k_value += share;
         Ok(meta)
     })?;
@@ -337,7 +337,7 @@ pub fn withdraw_liquidity(
 ) -> Result<Response<TerraMsg>, ContractError> {
     assert_deadline(env.block.time.seconds(), deadline)?;
 
-    let pair_info: PairInfoRaw = PAIR_INFO.load(deps.storage)?;
+    let pair_info: ClassicmoonInfoRaw = CLASSICMOON_INFO.load(deps.storage)?;
 
     let pools: [Asset; 2] = pair_info.query_pools(&deps.querier, deps.api, env.contract.address)?;
     let total_share: Uint128 = pair_info.liquidity_k_value;
@@ -354,7 +354,7 @@ pub fn withdraw_liquidity(
     assert_minimum_assets(refund_assets.to_vec(), min_assets)?;
 
     // update pool info
-    PAIR_INFO.update(deps.storage, |mut meta| -> StdResult<_> {
+    CLASSICMOON_INFO.update(deps.storage, |mut meta| -> StdResult<_> {
         meta.liquidity_k_value = meta.liquidity_k_value.checked_sub(amount)?;
         Ok(meta)
     })?;
@@ -396,7 +396,7 @@ pub fn swap(
 
     offer_asset.assert_sent_native_token_balance(&info)?;
 
-    let pair_info: PairInfoRaw = PAIR_INFO.load(deps.storage)?;
+    let pair_info: ClassicmoonInfoRaw = CLASSICMOON_INFO.load(deps.storage)?;
 
     let pools: [Asset; 2] = pair_info.query_pools(&deps.querier, deps.api, env.contract.address)?;
 
@@ -488,15 +488,15 @@ pub fn query(deps: Deps<TerraQuery>, _env: Env, msg: QueryMsg) -> Result<Binary,
     }
 }
 
-pub fn query_pair_info(deps: Deps<TerraQuery>) -> Result<PairInfo, ContractError> {
-    let pair_info: PairInfoRaw = PAIR_INFO.load(deps.storage)?;
+pub fn query_pair_info(deps: Deps<TerraQuery>) -> Result<ClassicmoonInfo, ContractError> {
+    let pair_info: ClassicmoonInfoRaw = CLASSICMOON_INFO.load(deps.storage)?;
     let pair_info = pair_info.to_normal(deps.api)?;
 
     Ok(pair_info)
 }
 
 pub fn query_pool(deps: Deps<TerraQuery>) -> Result<PoolResponse, ContractError> {
-    let pair_info: PairInfoRaw = PAIR_INFO.load(deps.storage)?;
+    let pair_info: ClassicmoonInfoRaw = CLASSICMOON_INFO.load(deps.storage)?;
     let contract_addr = deps.api.addr_humanize(&pair_info.contract_addr)?;
     let assets: [Asset; 2] = pair_info.query_pools(&deps.querier, deps.api, contract_addr)?;
     let total_share: Uint128 = pair_info.liquidity_k_value;
@@ -513,7 +513,7 @@ pub fn query_simulation(
     deps: Deps<TerraQuery>,
     offer_asset: Asset,
 ) -> Result<SimulationResponse, ContractError> {
-    let pair_info: PairInfoRaw = PAIR_INFO.load(deps.storage)?;
+    let pair_info: ClassicmoonInfoRaw = CLASSICMOON_INFO.load(deps.storage)?;
 
     let contract_addr = deps.api.addr_humanize(&pair_info.contract_addr)?;
     let pools: [Asset; 2] = pair_info.query_pools(&deps.querier, deps.api, contract_addr)?;
@@ -544,7 +544,7 @@ pub fn query_reverse_simulation(
     deps: Deps<TerraQuery>,
     ask_asset: Asset,
 ) -> Result<ReverseSimulationResponse, ContractError> {
-    let pair_info: PairInfoRaw = PAIR_INFO.load(deps.storage)?;
+    let pair_info: ClassicmoonInfoRaw = CLASSICMOON_INFO.load(deps.storage)?;
 
     let contract_addr = deps.api.addr_humanize(&pair_info.contract_addr)?;
     let pools: [Asset; 2] = pair_info.query_pools(&deps.querier, deps.api, contract_addr)?;

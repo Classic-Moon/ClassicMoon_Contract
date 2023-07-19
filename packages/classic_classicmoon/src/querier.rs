@@ -1,5 +1,5 @@
-// use crate::asset::{Asset, AssetInfo, PairInfo};
-use crate::asset::{Asset, PairInfo};
+// use crate::asset::{Asset, AssetInfo, ClassicmoonInfo};
+use crate::asset::{Asset, ClassicmoonInfo};
 use crate::pair::{QueryMsg as PairQueryMsg, ReverseSimulationResponse, SimulationResponse};
 
 use classic_bindings::TerraQuery;
@@ -92,8 +92,8 @@ pub fn reverse_simulate(
 pub fn query_pair_info_from_pair(
     querier: &QuerierWrapper<TerraQuery>,
     pair_contract: Addr,
-) -> StdResult<PairInfo> {
-    let pair_info: PairInfo = querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
+) -> StdResult<ClassicmoonInfo> {
+    let pair_info: ClassicmoonInfo = querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
         contract_addr: pair_contract.to_string(),
         msg: to_binary(&PairQueryMsg::Pair {})?,
     }))?;
