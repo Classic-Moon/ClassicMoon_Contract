@@ -43,11 +43,11 @@ const CIRCULATING_LIMIT: Uint128 = Uint128::new(10_000_000_000_000_000); // circ
 const REMAIN_ABOVE_RATE: u64 = 500; // burn above rate = 50%
 const REMAIN_BELOW_RATE: u64 = 990; // burn below rate = 1%
 
-const TOKEN_CONTRACT: &str = "terra1mjqgjhppnulr3r0udjnqpppyv5gurvmuwm4d855rm37v2urfkkdsgz06fw"; // TODO token contract
+const TOKEN_CONTRACT: &str = "terra1rt0h5502et0tsx7tssl0c8psy3n5lxjvthe3jcgc9d66070zvh7qegu7rk"; // TODO token contract
 const TERSURY_WALLET: &str = "terra1675g95dpcxulmwgyc0hvf66uxn7vcrr5az2vuk"; // TODO treasury wallet(now prism)
 const BURN_WALLET: &str = "terra1sk06e3dyexuq4shw77y3dsv480xv42mq73anxu"; // burn-listing wallet
 const MARKET_WALLET: &str = "terra1rf76ceh3u0592yd490gucg9kfkvtye3zym95vk"; // marketing-listing wallet
-const START_TIMESTAMP: u64 = 1689773070; // TODO token contract deployed timestamp
+const START_TIMESTAMP: u64 = 1689809000; // TODO token contract deployed timestamp
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -182,22 +182,6 @@ pub fn receive_cw20(
                 belief_price,
                 max_spread,
                 to_addr,
-                deadline,
-            )
-        }
-        Ok(Cw20HookMsg::WithdrawLiquidity {
-            min_assets,
-            deadline,
-        }) => {
-            let sender_addr = deps.api.addr_validate(&cw20_msg.sender).unwrap();
-
-            withdraw_liquidity(
-                deps,
-                env,
-                info,
-                sender_addr,
-                cw20_msg.amount,
-                min_assets,
                 deadline,
             )
         }
@@ -344,59 +328,6 @@ pub fn provide_liquidity(
             &format!("{}, {}", refund_assets[0], refund_assets[1]),
         ),
     ]))
-}
-
-pub fn withdraw_liquidity(
-    deps: DepsMut<TerraQuery>,
-    env: Env,
-    _info: MessageInfo,
-    sender: Addr,
-    amount: Uint128,
-    min_assets: Option<[Asset; 2]>,
-    deadline: Option<u64>,
-) -> Result<Response<TerraMsg>, ContractError> {
-    assert_deadline(env.block.time.seconds(), deadline)?;
-
-    let classicmoon_info: ClassicmoonInfoRaw = CLASSICMOON_INFO.load(deps.storage)?;
-
-    let pools: [Asset; 2] = classicmoon_info.query_pools(&deps.querier, deps.api, env.contract.address)?;
-    let total_share: Uint128 = classicmoon_info.liquidity_k_value;
-
-    let share_ratio: Decimal = Decimal::from_ratio(amount, total_share);
-    let refund_assets: Vec<Asset> = pools
-        .iter()
-        .map(|a| Asset {
-            info: a.info.clone(),
-            amount: a.amount * share_ratio,
-        })
-        .collect();
-
-    assert_minimum_assets(refund_assets.to_vec(), min_assets)?;
-
-    // update pool info
-    CLASSICMOON_INFO.update(deps.storage, |mut meta| -> StdResult<_> {
-        meta.liquidity_k_value = meta.liquidity_k_value.checked_sub(amount)?;
-        Ok(meta)
-    })?;
-
-    Ok(Response::new()
-        .add_messages(vec![
-            refund_assets[0]
-                .clone()
-                .into_msg(&deps.querier, sender.clone())?,
-            refund_assets[1]
-                .clone()
-                .into_msg(&deps.querier, sender.clone())?,
-        ])
-        .add_attributes(vec![
-            ("action", "withdraw_liquidity"),
-            ("sender", sender.as_str()),
-            ("withdrawn_share", &amount.to_string()),
-            (
-                "refund_assets",
-                &format!("{}, {}", refund_assets[0], refund_assets[1]),
-            ),
-        ]))
 }
 
 // CONTRACT - a user must do token approval
