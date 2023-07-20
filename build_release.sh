@@ -60,6 +60,7 @@ LIBRARY_DIR="libraries/"
 
 CLASSICMOON="classicmoon"
 CLASSICMOON_TOKEN="classicmoon_token"
+DYNAMIC_MINT="dynamic_mint"
 
 ##############################################
 ### ENV, Build, Upload, Instantiate, Clean ###
@@ -159,7 +160,11 @@ BatchUpload() {
     # printf "y\n" | Upload
     # sleep 3
     
-    CATEGORY=$CLASSICMOON
+    # CATEGORY=$CLASSICMOON
+    # printf "y\n" | Upload
+    # sleep 3
+
+    CATEGORY=$DYNAMIC_MINT
     printf "y\n" | Upload
     sleep 3
 
@@ -197,9 +202,15 @@ BatchInstantiate() {
     # printf "y\n" | Instantiate
     # sleep 3
 
-    CATEGORY=$CLASSICMOON
-    PARAM_1='{"asset_infos":[{"token":{"contract_addr":"'$(cat $ADDRESS_DIR$CLASSICMOON_TOKEN)'"}}, {"native_token":{"denom":"uluna"}}], "token_code_id":'$(cat $CODE_DIR$CLASSICMOON_TOKEN)', "asset_decimals":[6, 6]}'
-    PARAM_2="ClassicMoon"
+    # CATEGORY=$CLASSICMOON
+    # PARAM_1='{"asset_infos":[{"token":{"contract_addr":"'$(cat $ADDRESS_DIR$CLASSICMOON_TOKEN)'"}}, {"native_token":{"denom":"uluna"}}], "token_code_id":'$(cat $CODE_DIR$CLASSICMOON_TOKEN)', "asset_decimals":[6, 6]}'
+    # PARAM_2="ClassicMoon"
+    # printf "y\n" | Instantiate
+    # sleep 3
+
+    CATEGORY=$DYNAMIC_MINT
+    PARAM_1='{}'
+    PARAM_2="Dynamic_mint"
     printf "y\n" | Instantiate
     sleep 3
 
@@ -432,8 +443,8 @@ BatchTest() {
 }
 
 if [[ $FUNCTION == "" ]]; then
-    # BatchUploadAndInstantiate
-    BatchTest
+    BatchUploadAndInstantiate
+    # BatchTest
 else
     $FUNCTION
 fi
