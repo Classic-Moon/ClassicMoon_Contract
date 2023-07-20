@@ -1,6 +1,8 @@
 // use crate::asset::{Asset, AssetInfo, ClassicmoonInfo};
 use crate::asset::{Asset, ClassicmoonInfo};
-use crate::classicmoon::{QueryMsg as ClassicmoonQueryMsg, ReverseSimulationResponse, SimulationResponse};
+use crate::classicmoon::{
+    QueryMsg as ClassicmoonQueryMsg, ReverseSimulationResponse, SimulationResponse,
+};
 
 use classic_bindings::TerraQuery;
 use cosmwasm_std::{
@@ -9,6 +11,41 @@ use cosmwasm_std::{
 };
 
 use cw20::{BalanceResponse as Cw20BalanceResponse, Cw20QueryMsg, TokenInfoResponse};
+use cw721::{Cw721QueryMsg, TokensResponse as Cw721TokensResponse};
+
+pub fn query_nft_list(
+    querier: &QuerierWrapper<TerraQuery>,
+    contract_addr: Addr,
+    account_addr: Addr,
+) -> StdResult<Cw721TokensResponse> {
+    let res: Cw721TokensResponse = querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
+        contract_addr: contract_addr.to_string(),
+        msg: to_binary(&Cw721QueryMsg::Tokens {
+            owner: account_addr.to_string(),
+            start_after: None,
+            limit: None,
+        })?,
+    }))?;
+
+    Ok(res)
+}
+
+pub fn query_is_nft_holder(
+    querier: &QuerierWrapper<TerraQuery>,
+    contract_addr: Addr,
+    account_addr: Addr,
+) -> StdResult<bool> {
+    let res: Cw721TokensResponse = querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
+        contract_addr: contract_addr.to_string(),
+        msg: to_binary(&Cw721QueryMsg::Tokens {
+            owner: account_addr.to_string(),
+            start_after: None,
+            limit: None,
+        })?,
+    }))?;
+
+    Ok(res.tokens.len() > 0)
+}
 
 pub fn query_balance(
     querier: &QuerierWrapper<TerraQuery>,
@@ -93,10 +130,11 @@ pub fn query_classicmoon_info_from_classicmoon(
     querier: &QuerierWrapper<TerraQuery>,
     classicmoon_contract: Addr,
 ) -> StdResult<ClassicmoonInfo> {
-    let classicmoon_info: ClassicmoonInfo = querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-        contract_addr: classicmoon_contract.to_string(),
-        msg: to_binary(&ClassicmoonQueryMsg::Classicmoon {})?,
-    }))?;
+    let classicmoon_info: ClassicmoonInfo =
+        querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
+            contract_addr: classicmoon_contract.to_string(),
+            msg: to_binary(&ClassicmoonQueryMsg::Classicmoon {})?,
+        }))?;
 
     Ok(classicmoon_info)
 }

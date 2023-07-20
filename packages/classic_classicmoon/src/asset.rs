@@ -330,3 +330,27 @@ impl ClassicmoonInfoRaw {
         ])
     }
 }
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+pub struct DynamicInfo {
+    pub totalLuncBurnAmount: Uint128,
+    pub totalUstcBurnAmount: Uint128,
+    pub totalMintedClsmAmount: Uint128,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+pub struct DynamicInfoRaw {
+    pub totalLuncBurnAmount: Uint128,
+    pub totalUstcBurnAmount: Uint128,
+    pub totalMintedClsmAmount: Uint128,
+}
+
+impl DynamicInfoRaw {
+    pub fn to_normal(&self, api: &dyn Api) -> StdResult<DynamicInfo> {
+        Ok(DynamicInfo {
+            totalLuncBurnAmount: self.totalLuncBurnAmount,
+            totalUstcBurnAmount: self.totalUstcBurnAmount,
+            totalMintedClsmAmount: self.totalMintedClsmAmount,
+        })
+    }
+}

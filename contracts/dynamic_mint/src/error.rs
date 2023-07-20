@@ -18,15 +18,12 @@ pub enum ContractError {
     #[error("Invalid zero amount")]
     InvalidZeroAmount {},
 
-    #[error("Max spread assertion")]
-    MaxSpreadAssertion {},
-
     #[error("Asset mismatch")]
     AssetMismatch {},
 
-    #[error("Min amount assertion ({min_asset} > {asset})")]
-    MinAmountAssertion { min_asset: String, asset: String },
+    #[error("No NFT")]
+    NoNftHolder {},
 
-    #[error("Max slippage assertion")]
-    MaxSlippageAssertion {},
+    #[error("In Lock Time")]
+    InLockTimeToMint {},
 }

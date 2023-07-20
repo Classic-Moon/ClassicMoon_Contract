@@ -43,10 +43,11 @@ const CIRCULATING_LIMIT: Uint128 = Uint128::new(10_000_000_000_000_000); // circ
 const REMAIN_ABOVE_RATE: u64 = 500; // burn above rate = 50%
 const REMAIN_BELOW_RATE: u64 = 990; // burn below rate = 1%
 
-const TOKEN_CONTRACT: &str = "terra1rt0h5502et0tsx7tssl0c8psy3n5lxjvthe3jcgc9d66070zvh7qegu7rk"; // TODO token contract
-const TERSURY_WALLET: &str = "terra1675g95dpcxulmwgyc0hvf66uxn7vcrr5az2vuk"; // TODO treasury wallet(now prism)
 const BURN_WALLET: &str = "terra1sk06e3dyexuq4shw77y3dsv480xv42mq73anxu"; // burn-listing wallet
 const MARKET_WALLET: &str = "terra1rf76ceh3u0592yd490gucg9kfkvtye3zym95vk"; // marketing-listing wallet
+const TERSURY_WALLET: &str = "terra1675g95dpcxulmwgyc0hvf66uxn7vcrr5az2vuk"; // TODO treasury wallet(now prism)
+
+const TOKEN_CONTRACT: &str = "terra1rt0h5502et0tsx7tssl0c8psy3n5lxjvthe3jcgc9d66070zvh7qegu7rk"; // TODO token contract
 const START_TIMESTAMP: u64 = 1689809000; // TODO token contract deployed timestamp
 
 #[cfg_attr(not(feature = "library"), entry_point)]
