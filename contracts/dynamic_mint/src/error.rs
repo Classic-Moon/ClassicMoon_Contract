@@ -26,4 +26,7 @@ pub enum ContractError {
 
     #[error("In Lock Time")]
     InLockTimeToMint {},
+
+    #[error("200 Billion LIMIT")]
+    AssetLimit {},
 }

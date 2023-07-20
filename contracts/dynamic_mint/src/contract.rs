@@ -5,24 +5,21 @@ use crate::state::DYNAMIC_INFO;
 use cosmwasm_std::entry_point;
 
 use cosmwasm_std::{
-    from_binary, to_binary, Addr, Binary, CosmosMsg, Decimal, Decimal256, Deps, DepsMut, Env,
-    MessageInfo, Response, StdResult, Uint128, Uint256, WasmMsg,
+    to_binary, Addr, Binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
+    Uint128, Uint256, WasmMsg,
 };
 
 use classic_bindings::{TerraMsg, TerraQuery};
 
 use classic_classicmoon::asset::{Asset, AssetInfo, DynamicInfo, DynamicInfoRaw};
-use classic_classicmoon::dynamic::{
-    Cw20HookMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, PoolResponse, QueryMsg,
-    ReverseSimulationResponse, SimulationResponse,
+use classic_classicmoon::dynamic::{ExecuteMsg, InstantiateMsg, QueryMsg};
+use classic_classicmoon::querier::{
+    query_balance, query_is_nft_holder, query_token_balance, query_token_info,
 };
-use classic_classicmoon::querier::{query_balance, query_is_nft_holder, query_token_balance};
-use classic_classicmoon::util::{assert_deadline, migrate_version};
+use classic_classicmoon::util::assert_deadline;
 use cw2::set_contract_version;
-use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg};
-use std::cmp::Ordering;
+use cw20::Cw20ExecuteMsg;
 use std::convert::TryInto;
-use std::ops::Mul;
 
 // version info for migration info
 const CONTRACT_NAME: &str = "crates.io:dynamic-mint";
@@ -49,16 +46,16 @@ const START_MINT_BY_USTC: u64 = 1689809000 + 90 * 86400; // TODO 3 months later 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
     deps: DepsMut<TerraQuery>,
-    env: Env,
+    _env: Env,
     _info: MessageInfo,
-    msg: InstantiateMsg,
+    _msg: InstantiateMsg,
 ) -> StdResult<Response<TerraMsg>> {
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
 
     let dynamic_info: &DynamicInfoRaw = &DynamicInfoRaw {
-        totalLuncBurnAmount: Uint128::zero(),
-        totalUstcBurnAmount: Uint128::zero(),
-        totalMintedClsmAmount: Uint128::zero(),
+        total_lunc_burn_amount: Uint128::zero(),
+        total_ustc_burn_amount: Uint128::zero(),
+        total_minted_clsm_amount: Uint128::zero(),
     };
 
     DYNAMIC_INFO.save(deps.storage, dynamic_info)?;
@@ -74,7 +71,7 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response<TerraMsg>, ContractError> {
     match msg {
-        ExecuteMsg::Receive(msg) => {
+        ExecuteMsg::Receive(_msg) => {
             return Err(ContractError::Unauthorized {});
         }
         ExecuteMsg::Mint {
@@ -136,6 +133,27 @@ pub fn mint(
         return Err(ContractError::NoNftHolder {});
     }
 
+    let total_supply =
+        query_token_info(&deps.querier, Addr::unchecked(TOKEN_CONTRACT))?.total_supply;
+
+    let treasury_bal = query_token_balance(
+        &deps.querier,
+        Addr::unchecked(TOKEN_CONTRACT),
+        Addr::unchecked(TERSURY_WALLET),
+    )?;
+
+    let burn_bal = query_token_balance(
+        &deps.querier,
+        Addr::unchecked(TOKEN_CONTRACT),
+        Addr::unchecked(BURN_WALLET),
+    )?;
+
+    let circulating_supply = total_supply - treasury_bal - burn_bal;
+
+    if circulating_supply > CIRCULATING_LIMIT {
+        return Err(ContractError::AssetLimit {});
+    }
+
     let mint_amount;
 
     match offer_asset.info.clone() {
@@ -163,8 +181,8 @@ pub fn mint(
                     compute_mint_by_lunc(token_balance, lunc_balance, offer_asset.amount)?;
 
                 DYNAMIC_INFO.update(deps.storage, |mut meta: DynamicInfoRaw| -> StdResult<_> {
-                    meta.totalLuncBurnAmount += offer_asset.amount;
-                    meta.totalMintedClsmAmount += mint_amount;
+                    meta.total_lunc_burn_amount += offer_asset.amount;
+                    meta.total_minted_clsm_amount += mint_amount;
                     Ok(meta)
                 })?;
             } else if denom == "uusd" {
@@ -192,8 +210,8 @@ pub fn mint(
                 )?;
 
                 DYNAMIC_INFO.update(deps.storage, |mut meta: DynamicInfoRaw| -> StdResult<_> {
-                    meta.totalUstcBurnAmount += offer_asset.amount;
-                    meta.totalMintedClsmAmount += mint_amount;
+                    meta.total_ustc_burn_amount += offer_asset.amount;
+                    meta.total_minted_clsm_amount += mint_amount;
                     Ok(meta)
                 })?;
             } else {
@@ -219,7 +237,11 @@ pub fn mint(
     // compute tax (0.5% for Native Token by Lunc Policy)
     let tax_amount = offer_asset.compute_tax(&deps.querier)?;
     if !offer_asset.amount.clone().is_zero() {
-        messages.push(offer_asset.clone().into_msg(&deps.querier, Addr::unchecked(BURN_WALLET))?);
+        messages.push(
+            offer_asset
+                .clone()
+                .into_msg(&deps.querier, Addr::unchecked(BURN_WALLET))?,
+        );
     }
 
     Ok(Response::new().add_messages(messages).add_attributes(vec![
@@ -257,7 +279,7 @@ pub fn query(deps: Deps<TerraQuery>, env: Env, msg: QueryMsg) -> Result<Binary, 
 
 pub fn query_dynamic_info(deps: Deps<TerraQuery>) -> Result<DynamicInfo, ContractError> {
     let dynamic_info: DynamicInfoRaw = DYNAMIC_INFO.load(deps.storage)?;
-    let dynamic_info: DynamicInfo = dynamic_info.to_normal(deps.api)?;
+    let dynamic_info: DynamicInfo = dynamic_info.to_normal()?;
 
     Ok(dynamic_info)
 }
@@ -277,6 +299,27 @@ pub fn query_is_mintable_by_lunc(
 
     if !is_classicmoon_holder & !is_fury_holder {
         return Err(ContractError::NoNftHolder {});
+    }
+
+    let total_supply =
+        query_token_info(&deps.querier, Addr::unchecked(TOKEN_CONTRACT))?.total_supply;
+
+    let treasury_bal = query_token_balance(
+        &deps.querier,
+        Addr::unchecked(TOKEN_CONTRACT),
+        Addr::unchecked(TERSURY_WALLET),
+    )?;
+
+    let burn_bal = query_token_balance(
+        &deps.querier,
+        Addr::unchecked(TOKEN_CONTRACT),
+        Addr::unchecked(BURN_WALLET),
+    )?;
+
+    let circulating_supply = total_supply - treasury_bal - burn_bal;
+
+    if circulating_supply > CIRCULATING_LIMIT {
+        return Err(ContractError::AssetLimit {});
     }
 
     if env.block.time.seconds() > START_MINT_BY_LUNC {
@@ -301,6 +344,27 @@ pub fn query_is_mintable_by_ustc(
 
     if !is_classicmoon_holder & !is_fury_holder {
         return Err(ContractError::NoNftHolder {});
+    }
+
+    let total_supply =
+        query_token_info(&deps.querier, Addr::unchecked(TOKEN_CONTRACT))?.total_supply;
+
+    let treasury_bal = query_token_balance(
+        &deps.querier,
+        Addr::unchecked(TOKEN_CONTRACT),
+        Addr::unchecked(TERSURY_WALLET),
+    )?;
+
+    let burn_bal = query_token_balance(
+        &deps.querier,
+        Addr::unchecked(TOKEN_CONTRACT),
+        Addr::unchecked(BURN_WALLET),
+    )?;
+
+    let circulating_supply = total_supply - treasury_bal - burn_bal;
+
+    if circulating_supply > CIRCULATING_LIMIT {
+        return Err(ContractError::AssetLimit {});
     }
 
     if env.block.time.seconds() > START_MINT_BY_USTC {
