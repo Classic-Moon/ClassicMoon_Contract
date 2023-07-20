@@ -280,8 +280,8 @@ pub struct ClassicmoonInfo {
     pub asset_infos: [AssetInfo; 2],
     pub contract_addr: String,
     pub liquidity_k_value: Uint128,
-    pub vesting_epoch: u8,
-    pub autoburn_epoch: u32,
+    pub vesting_epoch: u64,
+    pub autoburn_epoch: u64,
     pub asset_decimals: [u8; 2],
 }
 
@@ -290,8 +290,8 @@ pub struct ClassicmoonInfoRaw {
     pub asset_infos: [AssetInfoRaw; 2],
     pub contract_addr: CanonicalAddr,
     pub liquidity_k_value: Uint128,
-    pub vesting_epoch: u8,
-    pub autoburn_epoch: u32,
+    pub vesting_epoch: u64,
+    pub autoburn_epoch: u64,
     pub asset_decimals: [u8; 2],
 }
 
