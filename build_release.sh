@@ -157,17 +157,17 @@ RemoveHistory() {
 BatchUpload() {
     echo "======================BatchUpload Start======================"
     
-    # CATEGORY=$CLASSICMOON_TOKEN
-    # printf "y\n" | Upload
-    # sleep 3
+    CATEGORY=$CLASSICMOON_TOKEN
+    printf "y\n" | Upload
+    sleep 3
     
-    # CATEGORY=$CLASSICMOON
-    # printf "y\n" | Upload
-    # sleep 3
+    CATEGORY=$CLASSICMOON
+    printf "y\n" | Upload
+    sleep 3
 
-    # CATEGORY=$DYNAMIC_MINT
-    # printf "y\n" | Upload
-    # sleep 3
+    CATEGORY=$DYNAMIC_MINT
+    printf "y\n" | Upload
+    sleep 3
 
     CATEGORY=$AIRDROP
     printf "y\n" | Upload
@@ -201,23 +201,23 @@ Instantiate() {
 BatchInstantiate() {
     echo "======================BatchInstantiate Start======================"
 
-    # CATEGORY=$CLASSICMOON_TOKEN
-    # PARAM_1='{"name":"ClassicMoon Test", "symbol":"TCLSM", "decimals":6, "initial_balances":[{"address":"'$ADDR_ADMIN'", "amount":"6800000000000000000"}], "mint":{"minter":"'$ADDR_ADMIN'"}, "marketing":{"marketing":"'$ADDR_ADMIN'","logo":{"url":"https://classicmoon-frontend-2023.web.app/logo83.png"}}}'
-    # PARAM_2="TCLSM"
-    # printf "y\n" | Instantiate
-    # sleep 3
+    CATEGORY=$CLASSICMOON_TOKEN
+    PARAM_1='{"name":"ClassicMoon Test", "symbol":"TCLSM", "decimals":6, "initial_balances":[{"address":"'$ADDR_ADMIN'", "amount":"6800000000000000000"}], "mint":{"minter":"'$ADDR_ADMIN'"}, "marketing":{"marketing":"'$ADDR_ADMIN'","logo":{"url":"https://classicmoon-frontend-2023.web.app/logo83.png"}}}'
+    PARAM_2="TCLSM"
+    printf "y\n" | Instantiate
+    sleep 3
 
-    # CATEGORY=$CLASSICMOON
-    # PARAM_1='{"asset_infos":[{"token":{"contract_addr":"'$(cat $ADDRESS_DIR$CLASSICMOON_TOKEN)'"}}, {"native_token":{"denom":"uluna"}}], "token_code_id":'$(cat $CODE_DIR$CLASSICMOON_TOKEN)', "asset_decimals":[6, 6]}'
-    # PARAM_2="ClassicMoon"
-    # printf "y\n" | Instantiate
-    # sleep 3
+    CATEGORY=$CLASSICMOON
+    PARAM_1='{"asset_infos":[{"token":{"contract_addr":"'$(cat $ADDRESS_DIR$CLASSICMOON_TOKEN)'"}}, {"native_token":{"denom":"uluna"}}], "token_code_id":'$(cat $CODE_DIR$CLASSICMOON_TOKEN)', "asset_decimals":[6, 6]}'
+    PARAM_2="ClassicMoon"
+    printf "y\n" | Instantiate
+    sleep 3
 
-    # CATEGORY=$DYNAMIC_MINT
-    # PARAM_1='{}'
-    # PARAM_2="Dynamic_mint"
-    # printf "y\n" | Instantiate
-    # sleep 3
+    CATEGORY=$DYNAMIC_MINT
+    PARAM_1='{}'
+    PARAM_2="Dynamic_mint"
+    printf "y\n" | Instantiate
+    sleep 3
 
     CATEGORY=$AIRDROP
     PARAM_1='{}'
@@ -262,7 +262,7 @@ Balances() {
 }
 
 ##############################################
-##################   Token   ##################
+##################   Token   #################
 ##############################################
 
 TokenMintByPrism() {
@@ -310,6 +310,33 @@ IncreaseAllowance() {
     echo "End"
 }
 
+UpdateMinterAsDynamicMinter() {
+    echo "================================================="
+    echo "UpdateMinterAsDynamicMinter"
+    PARAM_1='{"update_minter": {"new_minter": "'$(cat $ADDRESS_DIR$DYNAMIC_MINT)'" }}'
+    echo "terrad tx wasm execute $(cat $ADDRESS_DIR$CLASSICMOON_TOKEN) "$PARAM_1" $WALLET $TXFLAG"
+    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$CLASSICMOON_TOKEN) "$PARAM_1" $WALLET $TXFLAG
+    sleep 5
+}
+
+IncreaseAllowanceForClassicMoon() {
+    echo "================================================="
+    echo "IncreaseAllowanceForClassicMoon"
+    PARAM_1='{"increase_allowance": {"spender": "'$(cat $ADDRESS_DIR$CLASSICMOON)'", "amount": "6800000000000000000", "expires": {"never": {}}}}'
+    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$CLASSICMOON_TOKEN) "$PARAM_1" $WALLET $TXFLAG
+    sleep 5
+    echo "End"
+}
+
+IncreaseAllowanceForAirdrop() {
+    echo "================================================="
+    echo "IncreaseAllowanceForAirdrop"
+    PARAM_1='{"increase_allowance": {"spender": "'$(cat $ADDRESS_DIR$AIRDROP)'", "amount": "6800000000000000000", "expires": {"never": {}}}}'
+    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$CLASSICMOON_TOKEN) "$PARAM_1" $WALLET $TXFLAG
+    sleep 5
+    echo "End"
+}
+
 TokenTransfer () {
     echo "================================================="
     echo "Start TokenTransfer"
@@ -334,12 +361,13 @@ GetAllowance() {
 ######        CLASSICMOON Execute       ######
 ##############################################
 
+# 100K CLSM : 100 LUNA
 AddLiquidity() {
     echo "================================================="
     echo "Start Add Liquidity"
-    PARAM_1='{"provide_liquidity": {"assets": [{"info": {"token":{"contract_addr":"'$(cat $ADDRESS_DIR$CLASSICMOON_TOKEN)'"}}, "amount": "100000000"}, {"info": {"native_token":{"denom":"uluna"}}, "amount": "1000000"}]}}'
-    echo "terrad tx wasm execute $(cat $ADDRESS_DIR$CLASSICMOON) "$PARAM_1" --amount 1000000uluna $WALLET $TXFLAG"
-    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$CLASSICMOON) "$PARAM_1" --amount 1000000uluna $WALLET $TXFLAG
+    PARAM_1='{"provide_liquidity": {"assets": [{"info": {"token":{"contract_addr":"'$(cat $ADDRESS_DIR$CLASSICMOON_TOKEN)'"}}, "amount": "100000000000"}, {"info": {"native_token":{"denom":"uluna"}}, "amount": "100000000"}]}}'
+    echo "terrad tx wasm execute $(cat $ADDRESS_DIR$CLASSICMOON) "$PARAM_1" --amount 100000000uluna $WALLET $TXFLAG"
+    printf "y\n" | terrad tx wasm execute $(cat $ADDRESS_DIR$CLASSICMOON) "$PARAM_1" --amount 100000000uluna $WALLET $TXFLAG
     sleep 5
     echo "End"
 }
@@ -424,6 +452,38 @@ ReverseSimulationClsmFromLunc() {
     echo "End"
 }
 
+##############################################
+#################   Airdrop   ################
+##############################################
+
+AirdropGlobalInfo() {
+    echo "================================================="
+    echo "AirdropGlobalInfo"
+    PARAM_1='{"airdrop_global_info": {}}'
+    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$AIRDROP) "$PARAM_1" $NODECHAIN --output json
+    sleep 5
+    echo "End"
+}
+
+AirdropNftInfo() {
+    echo "================================================="
+    echo "AirdropNftInfo"
+    PARAM_1='{"airdrop_nft_info": {"token_id": "1"}}'
+    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$AIRDROP) "$PARAM_1" $NODECHAIN --output json
+    sleep 5
+    echo "End"
+}
+
+AirdropUserInfo() {
+    echo "================================================="
+    echo "AirdropUserInfo"
+    NFT_USER="terra1ayy0g44e29z6nsnsdzg7plqv4mv452hzmw24am"
+    PARAM_1='{"airdrop_user_info": {"account": "'$NFT_USER'"}}'
+    printf "y\n" | terrad query wasm contract-state smart $(cat $ADDRESS_DIR$AIRDROP) "$PARAM_1" $NODECHAIN --output json
+    sleep 5
+    echo "End"
+}
+
 #################################### End of Function ###################################################
 BatchUploadAndInstantiate() {
     BatchUpload
@@ -433,13 +493,10 @@ BatchUploadAndInstantiate() {
 BatchTest() {
     Balances
 
-    TokenMintByPrism
-    UpdateMinterAsPrism2
-    TokenMintByPrism2
-    UpdateMinterAsPrism
-    TokenMintByPrism
+    UpdateMinterAsDynamicMinter
 
-    IncreaseAllowance
+    IncreaseAllowanceForAirdrop
+    IncreaseAllowanceForClassicMoon
     GetAllowance
     AddLiquidity
     SwapLuncToClsm
@@ -451,11 +508,15 @@ BatchTest() {
     ReverseSimulationLuncFromClsm
     ReverseSimulationClsmFromLunc
     Balances
+
+    AirdropGlobalInfo
+    AirdropNftInfo
+    AirdropUserInfo
 }
 
 if [[ $FUNCTION == "" ]]; then
     BatchUploadAndInstantiate
-    # BatchTest
+    BatchTest
 else
     $FUNCTION
 fi
