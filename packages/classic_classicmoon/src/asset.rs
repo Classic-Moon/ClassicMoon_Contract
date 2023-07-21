@@ -2,7 +2,6 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
-// use crate::querier::{query_balance, query_token_balance, query_token_info};
 use crate::querier::{query_balance, query_token_balance};
 use classic_bindings::{TerraMsg, TerraQuerier, TerraQuery};
 use cosmwasm_std::{
@@ -172,13 +171,11 @@ impl AssetInfo {
         pool_addr: Addr,
     ) -> StdResult<Uint128> {
         match self {
-            AssetInfo::Token { contract_addr, .. } => {
-                query_token_balance(
-                    querier,
-                    api.addr_validate(&contract_addr).unwrap(),
-                    pool_addr,
-                )
-            }
+            AssetInfo::Token { contract_addr, .. } => query_token_balance(
+                querier,
+                api.addr_validate(&contract_addr).unwrap(),
+                pool_addr,
+            ),
             AssetInfo::NativeToken { denom, .. } => {
                 query_balance(querier, pool_addr, denom.to_string())
             }
@@ -351,6 +348,76 @@ impl DynamicInfoRaw {
             total_lunc_burn_amount: self.total_lunc_burn_amount,
             total_ustc_burn_amount: self.total_ustc_burn_amount,
             total_minted_clsm_amount: self.total_minted_clsm_amount,
+        })
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+pub struct AirdropGlobal {
+    pub total_dropped_amounts: Uint128,
+    pub last_drop_user: String,
+    pub last_drop_timestamp: u64,
+    pub last_drop_amount: Uint128,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+pub struct AirdropGlobalRaw {
+    pub total_dropped_amounts: Uint128,
+    pub last_drop_user: CanonicalAddr,
+    pub last_drop_timestamp: u64,
+    pub last_drop_amount: Uint128,
+}
+
+impl AirdropGlobalRaw {
+    pub fn to_normal(&self, api: &dyn Api) -> StdResult<AirdropGlobal> {
+        Ok(AirdropGlobal {
+            total_dropped_amounts: self.total_dropped_amounts,
+            last_drop_user: api.addr_humanize(&self.last_drop_user)?.to_string(),
+            last_drop_timestamp: self.last_drop_timestamp,
+            last_drop_amount: self.last_drop_amount,
+        })
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+pub struct AirdropNftInfo {
+    pub dropped_amount: Uint128,
+    pub last_drop_amount: Uint128,
+    pub last_drop_time: u64,
+}
+
+impl AirdropNftInfo {
+    pub fn to_normal(&self) -> StdResult<AirdropNftInfo> {
+        Ok(AirdropNftInfo {
+            dropped_amount: self.dropped_amount,
+            last_drop_amount: self.last_drop_amount,
+            last_drop_time: self.last_drop_time,
+        })
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+pub struct AirdropUserInfoResponse {
+    pub dropped_amount: Uint128,
+    pub last_drop_amount: Uint128,
+    pub last_drop_time: u64,
+    pub next_drop_time: u64,
+    pub pending_amount: Uint128,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+pub struct AirdropUserInfo {
+    pub dropped_amount: Uint128,
+    pub last_drop_amount: Uint128,
+    pub last_drop_time: u64,
+}
+
+impl AirdropUserInfo {
+    pub fn to_normal(&self) -> StdResult<AirdropUserInfo> {
+        Ok(AirdropUserInfo {
+            dropped_amount: self.dropped_amount,
+            last_drop_amount: self.last_drop_amount,
+            last_drop_time: self.last_drop_time,
         })
     }
 }

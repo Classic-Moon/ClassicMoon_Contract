@@ -7,18 +7,13 @@ use cosmwasm_std::{Addr, Decimal, Uint128};
 use cw20::Cw20ReceiveMsg;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-pub struct InstantiateMsg {
-}
+pub struct InstantiateMsg {}
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
     Receive(Cw20ReceiveMsg),
-    Mint {
-        offer_asset: Asset,
-        to: Option<String>,
-        deadline: Option<u64>,
-    },
+    Airdrop {},
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
@@ -36,12 +31,9 @@ pub enum Cw20HookMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
-    Dynamic {},
-    IsMintableByLunc { account: Addr },
-    IsMintableByUstc { account: Addr },
-    GetAmountMint { offer_asset: Asset },
-    GetAmountLunc { mint_amount: Uint128 },
-    GetAmountUstc { mint_amount: Uint128 },
+    AirdropGlobalInfo {},
+    AirdropNftInfo { token_id: String },
+    AirdropUserInfo { account: Addr },
 }
 
 // We define a custom struct for each query response

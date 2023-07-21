@@ -36,7 +36,7 @@ const MARKETING_RATE: u64 = 500; // marketing rate = 50%
 // const DISTRIBUTE_RATE: u64 = 500; // distribute rate = 50%
 
 const VESTING_DURATION: u64 = 30 * 86400; // 1 month
-const VESTING_LIMIT: u64 = 40; // 40 months
+const VESTING_COUNT_LIMIT: u64 = 40; // 40 months
 const VESTING_AMOUNT: Uint128 = Uint128::new(113_900_000_000_000_000); // vesting amount = 113.9 billion
 const AUTOBURN_DURATION: u64 = 10 * 86400; // 10 days
 const CIRCULATING_LIMIT: Uint128 = Uint128::new(10_000_000_000_000_000); // circulating_supply_limit = 10 billion
@@ -420,7 +420,7 @@ pub fn swap(
     }
 
     // vesting
-    if (classicmoon_info.vesting_epoch < VESTING_LIMIT) & (env.block.time.seconds() > START_TIMESTAMP + VESTING_DURATION * (classicmoon_info.vesting_epoch + 1)) {
+    if (classicmoon_info.vesting_epoch < VESTING_COUNT_LIMIT) & (env.block.time.seconds() > START_TIMESTAMP + VESTING_DURATION * (classicmoon_info.vesting_epoch + 1)) {
         let offer_new_amount;
         let ask_new_amount;
 
