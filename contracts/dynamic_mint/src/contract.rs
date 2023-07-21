@@ -40,8 +40,10 @@ const TERSURY_WALLET: &str = "terra1675g95dpcxulmwgyc0hvf66uxn7vcrr5az2vuk"; // 
 const TOKEN_CONTRACT: &str = "terra1rt0h5502et0tsx7tssl0c8psy3n5lxjvthe3jcgc9d66070zvh7qegu7rk"; // TODO token contract
 const MOON_CONTRACT: &str = "terra1ffx3j5w2sf6yqysmyyhl2d4j80wxw9k3yxe3exleyjapqccxdg7sny4j8c"; // TODO classicmoon contract
 
-const START_MINT_BY_LUNC: u64 = 1689809000 + 60 * 86400; // TODO 2 months later from the date of contract execution
-const START_MINT_BY_USTC: u64 = 1689809000 + 90 * 86400; // TODO 3 months later from the date of contract execution
+// const START_MINT_BY_LUNC: u64 = 1689978000 + 60 * 86400; // TODO 2 months later from the date of contract execution
+const START_MINT_BY_LUNC: u64 = 1689978000 + 60 * 8; // Test TODO 2 months later from the date of contract execution
+// const START_MINT_BY_USTC: u64 = 1689978000 + 90 * 86400; // TODO 3 months later from the date of contract execution
+const START_MINT_BY_USTC: u64 = 1689978000 + 90 * 8; // Test TODO 3 months later from the date of contract execution
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(

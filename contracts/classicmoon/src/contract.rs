@@ -35,10 +35,12 @@ const COMMISSION_RATE: u64 = 2; // commission rate = 0.2%
 const MARKETING_RATE: u64 = 500; // marketing rate = 50%
 // const DISTRIBUTE_RATE: u64 = 500; // distribute rate = 50%
 
-const VESTING_DURATION: u64 = 30 * 86400; // 1 month
+// const VESTING_DURATION: u64 = 30 * 86400; // 1 month
+const VESTING_DURATION: u64 = 900; // Test 1 month
 const VESTING_COUNT_LIMIT: u64 = 40; // 40 months
 const VESTING_AMOUNT: Uint128 = Uint128::new(113_900_000_000_000_000); // vesting amount = 113.9 billion
-const AUTOBURN_DURATION: u64 = 10 * 86400; // 10 days
+// const AUTOBURN_DURATION: u64 = 10 * 86400; // 10 days
+const AUTOBURN_DURATION: u64 = 300; // Test 10 days
 const CIRCULATING_LIMIT: Uint128 = Uint128::new(10_000_000_000_000_000); // circulating_supply_limit = 10 billion
 const REMAIN_ABOVE_RATE: u64 = 500; // burn above rate = 50%
 const REMAIN_BELOW_RATE: u64 = 990; // burn below rate = 1%
@@ -48,7 +50,7 @@ const MARKET_WALLET: &str = "terra1rf76ceh3u0592yd490gucg9kfkvtye3zym95vk"; // m
 const TERSURY_WALLET: &str = "terra1675g95dpcxulmwgyc0hvf66uxn7vcrr5az2vuk"; // TODO treasury wallet(now prism)
 
 const TOKEN_CONTRACT: &str = "terra1rt0h5502et0tsx7tssl0c8psy3n5lxjvthe3jcgc9d66070zvh7qegu7rk"; // TODO token contract
-const START_TIMESTAMP: u64 = 1689809000; // TODO token contract deployed timestamp
+const START_TIMESTAMP: u64 = 1689978000; // TODO token contract deployed timestamp
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
