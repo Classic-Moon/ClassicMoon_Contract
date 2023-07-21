@@ -24,7 +24,8 @@ const CONTRACT_NAME: &str = "crates.io:airdrop";
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 const NFT_COLLECTION: &str = "terra15tuwx3r2peluez6sh4yauk4ztry5dg5els4rye534v9n8su5gacs259p77"; // classicmoon nft collection
-const AIRDROP_DURATION: u64 = 30 * 86400; // 1 month
+// const AIRDROP_DURATION: u64 = 30 * 86400; // 1 month
+const AIRDROP_DURATION: u64 = 30 * 8; // Test 1 month
 const AIRDROP_AMOUNT: Uint128 = Uint128::new(5_100_000_000_000); // airdrop amount per nft is 5.1 million
 // const AIRDROP_COUNT_LIMIT: u64 = 20; // 20 months
 const AIRDROP_LIMIT_PER_NFT: Uint128 = Uint128::new(20 * 5_100_000_000_000); // total airdrop amount per nft is 20 * 5.1 million
@@ -90,7 +91,7 @@ pub fn airdrop(
     let current_time = env.block.time.seconds();
     let mut airdrop_amount = Uint128::zero();
     for nft_id in nft_list {
-        let mut nft_info: AirdropNftInfo = AIRDROP_NFT_INFO.load(deps.storage, nft_id.clone())?;
+        let mut nft_info: AirdropNftInfo = AIRDROP_NFT_INFO.load(deps.storage, nft_id.clone()).unwrap_or_default();
         let check_time;
         if nft_info.last_drop_time > AIRDROP_START_TIME {
             check_time = nft_info.last_drop_time;
@@ -126,7 +127,7 @@ pub fn airdrop(
             Ok(meta)
         })?;
 
-        let mut user_info = AIRDROP_USER_INFO.load(deps.storage, sender.clone())?;
+        let mut user_info = AIRDROP_USER_INFO.load(deps.storage, sender.clone()).unwrap_or_default();
         user_info.dropped_amount += airdrop_amount;
         user_info.last_drop_amount = airdrop_amount;
         user_info.last_drop_time = current_time;
@@ -175,8 +176,8 @@ pub fn query_airdrop_config(deps: Deps<TerraQuery>) -> Result<AirdropGlobal, Con
 pub fn query_airdrop_nft_info(
     deps: Deps<TerraQuery>,
     token_id: String,
-) -> Result<AirdropNftInfo, ContractError> {
-    let airdrop_nft_info: AirdropNftInfo = AIRDROP_NFT_INFO.load(deps.storage, token_id)?;
+) -> StdResult<AirdropNftInfo> {
+    let airdrop_nft_info = AIRDROP_NFT_INFO.load(deps.storage, token_id).unwrap_or_default();
 
     Ok(airdrop_nft_info)
 }
@@ -187,7 +188,7 @@ pub fn query_airdrop_user_info(
     account: Addr,
 ) -> Result<AirdropUserInfoResponse, ContractError> {
     let airdrop_user_info: AirdropUserInfo =
-        AIRDROP_USER_INFO.load(deps.storage, account.clone())?;
+        AIRDROP_USER_INFO.load(deps.storage, account.clone()).unwrap_or_default();
 
     let nft_list = query_nft_list(&deps.querier, Addr::unchecked(NFT_COLLECTION), account)?.tokens;
 
@@ -198,7 +199,7 @@ pub fn query_airdrop_user_info(
     let current_time = env.block.time.seconds();
     let mut total_pending_amount = Uint128::zero();
     for nft_id in nft_list.clone() {
-        let nft_info: AirdropNftInfo = AIRDROP_NFT_INFO.load(deps.storage, nft_id)?;
+        let nft_info: AirdropNftInfo = AIRDROP_NFT_INFO.load(deps.storage, nft_id).unwrap_or_default();
         let check_time;
         if nft_info.last_drop_time > AIRDROP_START_TIME {
             check_time = nft_info.last_drop_time;
@@ -221,7 +222,7 @@ pub fn query_airdrop_user_info(
         next_drop_time = env.block.time.seconds();
     } else {
         for nft_id in nft_list.clone() {
-            let nft_info: AirdropNftInfo = AIRDROP_NFT_INFO.load(deps.storage, nft_id)?;
+            let nft_info: AirdropNftInfo = AIRDROP_NFT_INFO.load(deps.storage, nft_id).unwrap_or_default();
             if nft_info.last_drop_time < AIRDROP_START_TIME {
                 next_drop_time = AIRDROP_START_TIME;
             } else if next_drop_time > (nft_info.last_drop_time + AIRDROP_DURATION) {
@@ -230,7 +231,7 @@ pub fn query_airdrop_user_info(
         }
 
         for nft_id in nft_list {
-            let nft_info: AirdropNftInfo = AIRDROP_NFT_INFO.load(deps.storage, nft_id)?;
+            let nft_info: AirdropNftInfo = AIRDROP_NFT_INFO.load(deps.storage, nft_id).unwrap_or_default();
             if !(next_drop_time >= nft_info.last_drop_time + AIRDROP_DURATION) {
                 total_pending_amount += AIRDROP_AMOUNT;
             }

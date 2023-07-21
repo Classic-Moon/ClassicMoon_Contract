@@ -379,7 +379,7 @@ impl AirdropGlobalRaw {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema, Default)]
 pub struct AirdropNftInfo {
     pub dropped_amount: Uint128,
     pub last_drop_amount: Uint128,
@@ -396,7 +396,7 @@ impl AirdropNftInfo {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema, Default)]
 pub struct AirdropUserInfoResponse {
     pub dropped_amount: Uint128,
     pub last_drop_amount: Uint128,
@@ -405,7 +405,7 @@ pub struct AirdropUserInfoResponse {
     pub pending_amount: Uint128,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema, Default)]
 pub struct AirdropUserInfo {
     pub dropped_amount: Uint128,
     pub last_drop_amount: Uint128,
