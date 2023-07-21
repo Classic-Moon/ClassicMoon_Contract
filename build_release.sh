@@ -61,6 +61,7 @@ LIBRARY_DIR="libraries/"
 CLASSICMOON="classicmoon"
 CLASSICMOON_TOKEN="classicmoon_token"
 DYNAMIC_MINT="dynamic_mint"
+AIRDROP="airdrop"
 
 ##############################################
 ### ENV, Build, Upload, Instantiate, Clean ###
@@ -164,7 +165,11 @@ BatchUpload() {
     # printf "y\n" | Upload
     # sleep 3
 
-    CATEGORY=$DYNAMIC_MINT
+    # CATEGORY=$DYNAMIC_MINT
+    # printf "y\n" | Upload
+    # sleep 3
+
+    CATEGORY=$AIRDROP
     printf "y\n" | Upload
     sleep 3
 
@@ -208,9 +213,15 @@ BatchInstantiate() {
     # printf "y\n" | Instantiate
     # sleep 3
 
-    CATEGORY=$DYNAMIC_MINT
+    # CATEGORY=$DYNAMIC_MINT
+    # PARAM_1='{}'
+    # PARAM_2="Dynamic_mint"
+    # printf "y\n" | Instantiate
+    # sleep 3
+
+    CATEGORY=$AIRDROP
     PARAM_1='{}'
-    PARAM_2="Dynamic_mint"
+    PARAM_2="Airdrop"
     printf "y\n" | Instantiate
     sleep 3
 
@@ -448,14 +459,3 @@ if [[ $FUNCTION == "" ]]; then
 else
     $FUNCTION
 fi
-
-##################################################
-# 1. Upload
-#    - Token 
-#    - ClassicMoon
-#
-# 2. Instantiate
-#    - Token
-#    - ClassicMoon
-#
-##################################################
