@@ -157,13 +157,13 @@ RemoveHistory() {
 BatchUpload() {
     echo "======================BatchUpload Start======================"
     
-    CATEGORY=$CLASSICMOON_TOKEN
-    printf "y\n" | Upload
-    sleep 3
+    # CATEGORY=$CLASSICMOON_TOKEN
+    # printf "y\n" | Upload
+    # sleep 3
     
-    CATEGORY=$CLASSICMOON
-    printf "y\n" | Upload
-    sleep 3
+    # CATEGORY=$CLASSICMOON
+    # printf "y\n" | Upload
+    # sleep 3
 
     CATEGORY=$DYNAMIC_MINT
     printf "y\n" | Upload
@@ -201,17 +201,17 @@ Instantiate() {
 BatchInstantiate() {
     echo "======================BatchInstantiate Start======================"
 
-    CATEGORY=$CLASSICMOON_TOKEN
-    PARAM_1='{"name":"ClassicMoon Test", "symbol":"TCLSM", "decimals":6, "initial_balances":[{"address":"'$ADDR_ADMIN'", "amount":"6800000000000000000"}], "mint":{"minter":"'$ADDR_ADMIN'"}, "marketing":{"marketing":"'$ADDR_ADMIN'","logo":{"url":"https://classicmoon-frontend-2023.web.app/logo83.png"}}}'
-    PARAM_2="TCLSM"
-    printf "y\n" | Instantiate
-    sleep 3
+    # CATEGORY=$CLASSICMOON_TOKEN
+    # PARAM_1='{"name":"ClassicMoon Test", "symbol":"TCLSM", "decimals":6, "initial_balances":[{"address":"'$ADDR_ADMIN'", "amount":"6800000000000000000"}], "mint":{"minter":"'$ADDR_ADMIN'"}, "marketing":{"marketing":"'$ADDR_ADMIN'","logo":{"url":"https://classicmoon-frontend-2023.web.app/logo83.png"}}}'
+    # PARAM_2="TCLSM"
+    # printf "y\n" | Instantiate
+    # sleep 3
 
-    CATEGORY=$CLASSICMOON
-    PARAM_1='{"asset_infos":[{"token":{"contract_addr":"'$(cat $ADDRESS_DIR$CLASSICMOON_TOKEN)'"}}, {"native_token":{"denom":"uluna"}}], "token_code_id":'$(cat $CODE_DIR$CLASSICMOON_TOKEN)', "asset_decimals":[6, 6]}'
-    PARAM_2="ClassicMoon"
-    printf "y\n" | Instantiate
-    sleep 3
+    # CATEGORY=$CLASSICMOON
+    # PARAM_1='{"asset_infos":[{"token":{"contract_addr":"'$(cat $ADDRESS_DIR$CLASSICMOON_TOKEN)'"}}, {"native_token":{"denom":"uluna"}}], "token_code_id":'$(cat $CODE_DIR$CLASSICMOON_TOKEN)', "asset_decimals":[6, 6]}'
+    # PARAM_2="ClassicMoon"
+    # printf "y\n" | Instantiate
+    # sleep 3
 
     CATEGORY=$DYNAMIC_MINT
     PARAM_1='{}'
@@ -490,6 +490,13 @@ BatchUploadAndInstantiate() {
     BatchInstantiate
 }
 
+BatchConfig() {
+    UpdateMinterAsDynamicMinter
+    IncreaseAllowanceForAirdrop
+    IncreaseAllowanceForClassicMoon
+    AddLiquidity
+}
+
 BatchTest() {
     Balances
 
@@ -515,8 +522,20 @@ BatchTest() {
 }
 
 if [[ $FUNCTION == "" ]]; then
-    BatchUploadAndInstantiate
-    BatchTest
+    # BatchUploadAndInstantiate
+    BatchConfig
 else
     $FUNCTION
 fi
+
+# 1. Token upload
+# 2. Token instantiate
+# 3. Replace token address on moon, dynamic, airdrop
+# 4. Moon upload and instantiate
+# 5. Replace moon address on dynamic
+# 6. Dynamic and Airdrop upload and instantiate
+# 7. UpdateMinterAsDynamicMinter
+# 8. IncreaseAllowanceForAirdrop
+# 9. IncreaseAllowanceForClassicMoon
+# 10. AddLiquidity
+# 

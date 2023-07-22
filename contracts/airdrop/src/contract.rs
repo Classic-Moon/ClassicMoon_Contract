@@ -31,8 +31,8 @@ const AIRDROP_AMOUNT: Uint128 = Uint128::new(5_100_000_000_000); // airdrop amou
 const AIRDROP_LIMIT_PER_NFT: Uint128 = Uint128::new(20 * 5_100_000_000_000); // total airdrop amount per nft is 20 * 5.1 million
 
 const TERSURY_WALLET: &str = "terra1675g95dpcxulmwgyc0hvf66uxn7vcrr5az2vuk"; // TODO treasury wallet(now prism)
-const TOKEN_CONTRACT: &str = "terra1rt0h5502et0tsx7tssl0c8psy3n5lxjvthe3jcgc9d66070zvh7qegu7rk"; // TODO token contract
-const AIRDROP_START_TIME: u64 = 1689978000; // TODO timestamp of contract execution
+const TOKEN_CONTRACT: &str = "terra1kqckxvl92v7hxawgqve8xukvwa6x7v66tavxkc8w2ees3uj3xqrq4mq8tn"; // TODO token contract
+const AIRDROP_START_TIME: u64 = 1690008000; // TODO timestamp of contract execution
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(

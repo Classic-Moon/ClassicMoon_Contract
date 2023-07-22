@@ -49,8 +49,8 @@ const BURN_WALLET: &str = "terra1sk06e3dyexuq4shw77y3dsv480xv42mq73anxu"; // bur
 const MARKET_WALLET: &str = "terra1rf76ceh3u0592yd490gucg9kfkvtye3zym95vk"; // marketing-listing wallet
 const TERSURY_WALLET: &str = "terra1675g95dpcxulmwgyc0hvf66uxn7vcrr5az2vuk"; // TODO treasury wallet(now prism)
 
-const TOKEN_CONTRACT: &str = "terra1rt0h5502et0tsx7tssl0c8psy3n5lxjvthe3jcgc9d66070zvh7qegu7rk"; // TODO token contract
-const START_TIMESTAMP: u64 = 1689978000; // TODO token contract deployed timestamp
+const TOKEN_CONTRACT: &str = "terra1kqckxvl92v7hxawgqve8xukvwa6x7v66tavxkc8w2ees3uj3xqrq4mq8tn"; // TODO token contract
+const START_TIMESTAMP: u64 = 1690008000; // TODO token contract deployed timestamp
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(

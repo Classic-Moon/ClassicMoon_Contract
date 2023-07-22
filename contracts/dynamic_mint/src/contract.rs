@@ -37,13 +37,13 @@ const FURY_COLLECTION: &str = "terra1g7we2dvzgyfyh39zg44n0rlyh9xh4ym9z0wut7"; //
 const BURN_WALLET: &str = "terra1sk06e3dyexuq4shw77y3dsv480xv42mq73anxu"; // burn-listing wallet
 const TERSURY_WALLET: &str = "terra1675g95dpcxulmwgyc0hvf66uxn7vcrr5az2vuk"; // TODO treasury wallet(now prism)
 
-const TOKEN_CONTRACT: &str = "terra1rt0h5502et0tsx7tssl0c8psy3n5lxjvthe3jcgc9d66070zvh7qegu7rk"; // TODO token contract
-const MOON_CONTRACT: &str = "terra1ffx3j5w2sf6yqysmyyhl2d4j80wxw9k3yxe3exleyjapqccxdg7sny4j8c"; // TODO classicmoon contract
+const TOKEN_CONTRACT: &str = "terra1kqckxvl92v7hxawgqve8xukvwa6x7v66tavxkc8w2ees3uj3xqrq4mq8tn"; // TODO token contract
+const MOON_CONTRACT: &str = "terra1cjs4htzjj0f9xw77vq0chytf8capx8jkptgf52w02ul0ft5ccdlqujun9y"; // TODO classicmoon contract
 
-// const START_MINT_BY_LUNC: u64 = 1689978000 + 60 * 86400; // TODO 2 months later from the date of contract execution
-const START_MINT_BY_LUNC: u64 = 1689978000 + 60 * 8; // Test TODO 2 months later from the date of contract execution
-// const START_MINT_BY_USTC: u64 = 1689978000 + 90 * 86400; // TODO 3 months later from the date of contract execution
-const START_MINT_BY_USTC: u64 = 1689978000 + 90 * 8; // Test TODO 3 months later from the date of contract execution
+// const START_MINT_BY_LUNC: u64 = 1690008000 + 60 * 86400; // TODO 2 months later from the date of contract execution
+const START_MINT_BY_LUNC: u64 = 1690008000 + 60 * 8; // Test TODO 2 months later from the date of contract execution
+// const START_MINT_BY_USTC: u64 = 1690008000 + 90 * 86400; // TODO 3 months later from the date of contract execution
+const START_MINT_BY_USTC: u64 = 1690008000 + 90 * 8; // Test TODO 3 months later from the date of contract execution
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
